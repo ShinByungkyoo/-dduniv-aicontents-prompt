@@ -5,9 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>프롬프트 엔지니어링 마스터 클래스 | 동덕여대 AI콘텐츠제작</title>
   
-  <!-- 한글 웹폰트: Pretendard (Chrome CJK 서브셋 버그 회피용 정적 폰트) -->
+  <!-- 한글 웹폰트: 로컬 폰트 충돌 회피 위해 custom name + url() only 로 강제 CDN 사용 -->
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 
   <!-- React & Babel CDN 로드 (오프라인 더블 클릭 구동 지원) -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -15,6 +14,45 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
+    /* ==========================================
+       🔤 한글 웹폰트 (Pretendard - 로컬 충돌 회피 커스텀 이름)
+       ========================================== */
+    @font-face {
+      font-family: "PretendardCDN";
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+      src: url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/woff2/Pretendard-Regular.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "PretendardCDN";
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+      src: url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/woff2/Pretendard-Medium.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "PretendardCDN";
+      font-weight: 600;
+      font-style: normal;
+      font-display: swap;
+      src: url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/woff2/Pretendard-SemiBold.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "PretendardCDN";
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+      src: url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/woff2/Pretendard-Bold.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "PretendardCDN";
+      font-weight: 800;
+      font-style: normal;
+      font-display: swap;
+      src: url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/woff2/Pretendard-ExtraBold.woff2") format("woff2");
+    }
+
     /* ==========================================
        📚 Claude Code 마스터 클래스 스타일 프롬프트 훈련 플랫폼 CSS
        ========================================== */
@@ -64,7 +102,7 @@
     body {
       background: var(--bg);
       color: var(--ink);
-      font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: "Malgun Gothic", "맑은 고딕", "PretendardCDN", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       line-height: 1.75;
       font-size: 15.5px;
       -webkit-font-smoothing: antialiased;
@@ -142,7 +180,7 @@
       font-size: 13.5px;
       cursor: pointer;
       transition: all 0.2s ease;
-      font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      font-family: "Malgun Gothic", "맑은 고딕", "PretendardCDN", "Apple SD Gothic Neo", sans-serif;
       letter-spacing: 0;
       white-space: normal;
       word-break: keep-all;
@@ -770,7 +808,7 @@
     }
 
     .section-heading {
-      font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: "Malgun Gothic", "맑은 고딕", "PretendardCDN", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       font-size: 11.5px;
       font-weight: 700;
       color: var(--ink-dim);
@@ -926,7 +964,7 @@
       color: var(--ink);
       padding: 6px 10px;
       font-size: 13px;
-      font-family: -apple-system, "Apple SD Gothic Neo", "Pretendard", sans-serif;
+      font-family: "Malgun Gothic", "맑은 고딕", "PretendardCDN", -apple-system, sans-serif;
     }
     .pb-var-input:focus {
       outline: none;
@@ -942,7 +980,7 @@
       font-size: 13px;
       min-height: 70px;
       resize: vertical;
-      font-family: -apple-system, "Apple SD Gothic Neo", "Pretendard", sans-serif;
+      font-family: "Malgun Gothic", "맑은 고딕", "PretendardCDN", -apple-system, sans-serif;
     }
     .pb-var-textarea:focus {
       outline: none;
