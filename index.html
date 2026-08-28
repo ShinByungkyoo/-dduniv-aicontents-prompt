@@ -1,0 +1,4408 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>프롬프트 엔지니어링 마스터 클래스 | 동덕여대 AI콘텐츠제작</title>
+  
+  <!-- React & Babel CDN 로드 (오프라인 더블 클릭 구동 지원) -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    /* ==========================================
+       📚 Claude Code 마스터 클래스 스타일 프롬프트 훈련 플랫폼 CSS
+       ========================================== */
+
+    :root {
+      /* 다크 테마 기본값 */
+      --bg: #0e0f13;
+      --panel: #15171d;
+      --panel2: #1b1e26;
+      --ink: #e7e3da;
+      --ink-dim: #a7a396;
+      --line: #2a2d38;
+      --accent: #e07a4b;       /* 오렌지 악센트 */
+      --accent2: #c9a86a;      /* 금빛 악센트 */
+      --code-bg: #1a1d24;
+      --color-primary: #06b6d4;
+      --color-accent: #10b981;
+      --sidebar-w: 280px;
+      --max-w: 880px;
+    }
+
+    :root[data-theme="light"] {
+      /* 라이트 테마 변수 */
+      --bg: #f4f1ea;
+      --panel: #fbf9f4;
+      --panel2: #efe9dd;
+      --ink: #26241f;
+      --ink-dim: #6b6656;
+      --line: #ded7c7;
+      --accent: #c25a2c;
+      --accent2: #a8813a;
+      --code-bg: #f0ebe0;
+      --color-primary: #0891b2;
+      --color-accent: #059669;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      line-height: 1.75;
+      font-size: 15.5px;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    /* 전체 레이아웃 */
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* 📂 좌측 사이드바 목차 (TOC) */
+    .sidebar {
+      width: var(--sidebar-w);
+      flex: 0 0 var(--sidebar-w);
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      background: var(--panel);
+      border-right: 1px solid var(--line);
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 20px;
+    }
+
+    .brand .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 3px rgba(224, 122, 75, 0.25);
+    }
+
+    .brand b {
+      font-size: 15px;
+      letter-spacing: 0.2px;
+      color: var(--ink);
+    }
+
+    .brand small {
+      display: block;
+      color: var(--ink-dim);
+      font-size: 11px;
+      font-weight: 400;
+      margin-top: 2px;
+    }
+
+    .toc-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .toc-ch {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      color: var(--ink-dim);
+      font-weight: 600;
+      font-size: 13.5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .toc-ch:hover {
+      background: var(--panel2);
+      color: var(--ink);
+    }
+
+    .toc-ch.active {
+      background: rgba(224, 122, 75, 0.12);
+      color: var(--accent);
+    }
+
+    .toc-num {
+      font-family: monospace;
+      font-size: 11px;
+      color: var(--accent2);
+      min-width: 20px;
+    }
+
+    .toc-ch.active .toc-num {
+      color: var(--accent);
+    }
+
+    .toc-ch.done .toc-label::after {
+      content: " ✓";
+      color: var(--color-accent);
+      font-weight: 800;
+      margin-left: 6px;
+    }
+
+    .sidebar-footer {
+      border-top: 1px solid var(--line);
+      padding-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .theme-btn {
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      font-size: 0.8rem;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .theme-btn:hover {
+      border-color: var(--accent);
+    }
+
+    /* 📖 중앙 메인 콘텐츠 영역 */
+    .main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      justify-content: center;
+      padding: 0 40px;
+      overflow-y: auto;
+    }
+
+    .content {
+      width: 100%;
+      max-width: var(--max-w);
+      padding: 48px 0 100px;
+    }
+
+    /* 히어로 카드 */
+    .hero {
+      background: linear-gradient(135deg, rgba(224, 122, 75, 0.08), var(--panel));
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 32px;
+    }
+
+    .hero .kicker {
+      font-family: monospace;
+      font-size: 11px;
+      color: var(--accent2);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .hero h1 {
+      font-size: 28px;
+      line-height: 1.3;
+      margin: 8px 0;
+      color: var(--ink);
+    }
+
+    .hero p {
+      color: var(--ink-dim);
+      font-size: 14.5px;
+    }
+
+    /* 챕터 문서 본문 */
+    .chapter-section {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .chapter-section h2 {
+      font-size: 22px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 8px;
+      margin-top: 24px;
+      color: var(--ink);
+    }
+
+    .chapter-section h3 {
+      font-size: 17px;
+      color: var(--accent);
+      margin-top: 14px;
+    }
+
+    .chapter-section p {
+      color: var(--ink-dim);
+      font-size: 15px;
+    }
+
+    .chapter-section ul, .chapter-section ol {
+      padding-left: 24px;
+      color: var(--ink-dim);
+    }
+
+    .chapter-section li {
+      margin-bottom: 6px;
+    }
+
+    .chapter-section strong {
+      color: var(--ink);
+    }
+
+    .chapter-section blockquote {
+      padding: 10px 16px;
+      border-left: 3px solid var(--accent);
+      background: var(--panel);
+      border-radius: 0 8px 8px 0;
+      color: var(--ink-dim);
+      font-style: italic;
+    }
+
+    .chapter-section pre {
+      background: var(--code-bg);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px;
+      overflow-x: auto;
+      font-family: monospace;
+      font-size: 13.5px;
+    }
+
+    /* 📊 내장형 플레이그라운드 (터미널 테마) */
+    .pg-terminal {
+      background: #0b0c10;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 24px 0;
+    }
+
+    .pg-bar {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      background: #15171d;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .pg-bar i {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 6px;
+      display: inline-block;
+    }
+
+    .pg-bar i:nth-child(1) { background: #e0574e; }
+    .pg-bar i:nth-child(2) { background: #c9a86a; }
+    .pg-bar i:nth-child(3) { background: #3aa76d; }
+
+    .pg-bar span {
+      margin-left: 6px;
+      font-size: 11px;
+      color: var(--ink-dim);
+    }
+
+    .pg-mission {
+      padding: 10px 14px;
+      background: #12131a;
+      border-bottom: 1px solid #24262f;
+      font-size: 13px;
+      color: #cfcabb;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .pg-mission-tag {
+      font-size: 11px;
+      color: #d9b775;
+      border: 1px solid #3a3d49;
+      border-radius: 20px;
+      padding: 2px 8px;
+    }
+
+    .pg-interactive-area {
+      padding: 16px;
+      background: #090a0d;
+    }
+
+    .pg-textarea {
+      width: 100%;
+      height: 76px;
+      background: #0e0f14;
+      border: 1px solid #2a2d38;
+      border-radius: 8px;
+      padding: 10px;
+      color: #a7f3d0;
+      font-family: monospace;
+      font-size: 13.5px;
+      resize: none;
+      margin-bottom: 12px;
+    }
+
+    .pg-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    /* 게이지 컨트롤 */
+    .power-gauge {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #2a2d38;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .gauge-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11.5px;
+      font-weight: 700;
+    }
+
+    .gauge-track {
+      width: 100%;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .gauge-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent) 0%, var(--color-accent) 100%);
+      transition: width 0.3s ease;
+    }
+
+    .gauge-feedback {
+      font-size: 11px;
+      color: var(--color-primary);
+    }
+
+    .pg-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .pg-btn {
+      background: var(--accent);
+      color: #0e0f13;
+      font-weight: 800;
+      font-size: 13px;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .pg-btn:hover:not(:disabled) {
+      filter: brightness(1.1);
+      box-shadow: 0 0 8px rgba(224, 122, 75, 0.4);
+    }
+
+    .pg-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* 터미널 출력 결과 */
+    .pg-terminal-out {
+      margin-top: 14px;
+      padding: 12px;
+      background: #06070a;
+      border: 1px solid #20232b;
+      border-radius: 6px;
+      font-size: 13px;
+      line-height: 1.6;
+      max-height: 200px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    .pg-clear-banner {
+      margin-top: 12px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid var(--color-accent);
+      border-radius: 6px;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .pg-clear-banner span {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--color-accent);
+    }
+
+    /* ✏️ 확인 퀴즈 블록 (Quiz) */
+    .quiz {
+      margin: 32px 0;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(201, 168, 106, 0.08), var(--panel));
+    }
+
+    .quiz-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--accent2);
+      margin-bottom: 12px;
+    }
+
+    .quiz-head::before {
+      content: "✏️";
+    }
+
+    .quiz-question {
+      font-weight: 700;
+      font-size: 14.5px;
+      margin-bottom: 14px;
+      color: var(--ink);
+    }
+
+    .quiz-opts {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .quiz-opt {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      transition: all 0.2s ease;
+    }
+
+    .quiz-opt:hover {
+      border-color: var(--accent);
+      background: rgba(224, 122, 75, 0.05);
+    }
+
+    .quiz-mark {
+      flex: 0 0 16px;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--line);
+      border-radius: 50%;
+    }
+
+    .quiz-opt.correct {
+      border-color: #3aa76d;
+      background: rgba(58, 167, 109, 0.12);
+    }
+
+    .quiz-opt.correct .quiz-mark {
+      border-color: #3aa76d;
+      background: #3aa76d;
+      position: relative;
+    }
+
+    .quiz-opt.correct .quiz-mark::after {
+      content: "✓";
+      position: absolute;
+      inset: 0;
+      color: #fff;
+      font-size: 10px;
+      line-height: 13px;
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .quiz-opt.wrong {
+      border-color: #d05a4e;
+      background: rgba(208, 90, 78, 0.1);
+    }
+
+    .quiz-opt.wrong .quiz-mark {
+      border-color: #d05a4e;
+      background: #d05a4e;
+      position: relative;
+    }
+
+    .quiz-opt.wrong .quiz-mark::after {
+      content: "✕";
+      position: absolute;
+      inset: 0;
+      color: #fff;
+      font-size: 9px;
+      line-height: 13px;
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .quiz-explain {
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      background: var(--code-bg);
+      border: 1px solid var(--line);
+      color: var(--ink-dim);
+    }
+
+    /* ==========================================
+       📜 수료증 모달 (Certificate)
+       ========================================== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: var(--panel);
+      border: 2px solid var(--accent2);
+      box-shadow: 0 0 30px rgba(201, 168, 106, 0.25);
+      border-radius: 20px;
+      padding: 24px;
+      width: 90%;
+      max-width: 580px;
+      position: relative;
+      text-align: center;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 12px;
+      right: 18px;
+      background: transparent;
+      border: none;
+      color: var(--ink-dim);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .cert-card {
+      background: radial-gradient(circle at center, #1b202e 0%, #0d0f17 100%);
+      border: 2px solid #d4af37;
+      padding: 40px 30px;
+      border-radius: 12px;
+      color: #f3f4f6;
+      position: relative;
+    }
+
+    .cert-corner {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #d4af37;
+    }
+
+    .c-tl { top: 8px; left: 8px; border-right: none; border-bottom: none; }
+    .c-tr { top: 8px; right: 8px; border-left: none; border-bottom: none; }
+    .c-bl { bottom: 8px; left: 8px; border-right: none; border-top: none; }
+    .c-br { bottom: 8px; right: 8px; border-left: none; border-top: none; }
+
+    .cert-univ {
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: #d4af37;
+      margin-bottom: 20px;
+    }
+
+    .cert-head {
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: 0.25em;
+      margin-bottom: 28px;
+      color: #fff;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.25);
+    }
+
+    .cert-main {
+      font-size: 0.92rem;
+      line-height: 1.8;
+      margin-bottom: 36px;
+      color: #d1d5db;
+    }
+
+    .cert-main strong {
+      color: #fff;
+      font-size: 1.05rem;
+    }
+
+    .cert-date {
+      font-size: 0.82rem;
+      color: var(--ink-dim);
+      margin-bottom: 8px;
+    }
+
+    .cert-sign {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #d4af37;
+    }
+
+    .cert-print-btn {
+      background: linear-gradient(135deg, var(--accent2), #b8974a);
+      color: #0e0f13;
+      font-weight: 800;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      margin-top: 16px;
+      width: 100%;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .cert-print-btn:hover {
+      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+    }
+
+    /* 실시간 3대 속성 체크리스트 */
+    .attribute-checklist {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .attr-item {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--line);
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 12.0px;
+      text-align: center;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .attr-item.active {
+      border-color: var(--color-accent);
+      background: rgba(16, 185, 129, 0.08);
+      color: var(--color-accent);
+    }
+
+    .attr-item.inactive {
+      border-color: #d05a4e;
+      background: rgba(208, 90, 78, 0.05);
+      color: #d05a4e;
+    }
+
+    /* ==========================================
+       📖 프롬프트 플레이북 전용 스타일
+       ========================================== */
+    :root {
+      --playbook-accent: #d9f24a;
+    }
+    :root[data-theme="light"] {
+      --playbook-accent: #6b8e00;
+    }
+
+    .section-heading {
+      font-family: monospace;
+      font-size: 10.5px;
+      color: var(--ink-dim);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin: 18px 0 8px 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .section-heading::before {
+      content: "//";
+      color: var(--accent2);
+    }
+
+    .toc-ch.playbook.active {
+      background: rgba(217, 242, 74, 0.15);
+      color: var(--playbook-accent);
+    }
+    .toc-ch.playbook.active .toc-num {
+      color: var(--playbook-accent);
+    }
+    .toc-ch.playbook .toc-num {
+      color: var(--playbook-accent);
+    }
+
+    .hero.playbook {
+      background: linear-gradient(135deg, rgba(217, 242, 74, 0.08), var(--panel));
+    }
+    .hero.playbook .kicker {
+      color: var(--playbook-accent);
+    }
+
+    .playbook-body h3 {
+      color: var(--playbook-accent);
+    }
+    .playbook-body blockquote {
+      border-left-color: var(--playbook-accent);
+      background: rgba(217, 242, 74, 0.04);
+    }
+
+    .pb-badge {
+      display: inline-block;
+      font-size: 10.5px;
+      font-family: monospace;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: rgba(217, 242, 74, 0.15);
+      color: var(--playbook-accent);
+      border: 1px solid var(--playbook-accent);
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    .pb-tip {
+      border-left: 3px solid var(--playbook-accent);
+      background: rgba(217, 242, 74, 0.06);
+      border-radius: 0 10px 10px 0;
+      padding: 12px 16px;
+      margin: 14px 0;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .pb-callout {
+      background: #0b0c10;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin: 10px 0 14px;
+      color: #cfcabb;
+      font-family: monospace;
+      font-size: 13.2px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      overflow-x: auto;
+    }
+
+    .pb-callout-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 18px 0 6px;
+    }
+    .pb-callout-head b {
+      color: var(--playbook-accent);
+      font-size: 14px;
+    }
+
+    .pb-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+    .pb-table th, .pb-table td {
+      border: 1px solid var(--line);
+      padding: 8px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+    .pb-table th {
+      background: var(--panel2);
+      color: var(--ink);
+      font-weight: 700;
+    }
+    .pb-table td { color: var(--ink-dim); }
+
+    /* 프롬프트 빌더 */
+    .pb-builder {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 18px;
+      margin: 20px 0;
+    }
+    .pb-builder-title {
+      font-weight: 800;
+      font-size: 14px;
+      color: var(--playbook-accent);
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+    .pb-builder-desc {
+      font-size: 12.5px;
+      color: var(--ink-dim);
+      margin-bottom: 14px;
+    }
+    .pb-var-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .pb-var-label {
+      flex: 0 0 110px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--accent2);
+      font-family: monospace;
+    }
+    .pb-var-input {
+      flex: 1;
+      background: var(--code-bg);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--ink);
+      padding: 6px 10px;
+      font-size: 13px;
+      font-family: -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    }
+    .pb-var-input:focus {
+      outline: none;
+      border-color: var(--playbook-accent);
+    }
+    .pb-var-textarea {
+      flex: 1;
+      background: var(--code-bg);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--ink);
+      padding: 8px 10px;
+      font-size: 13px;
+      min-height: 70px;
+      resize: vertical;
+      font-family: -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    }
+    .pb-var-textarea:focus {
+      outline: none;
+      border-color: var(--playbook-accent);
+    }
+    .pb-preview {
+      background: #0b0c10;
+      border: 1px solid var(--playbook-accent);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-top: 12px;
+      font-family: monospace;
+      font-size: 13px;
+      color: #d7e88a;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      max-height: 360px;
+      overflow-y: auto;
+    }
+    .pb-btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .pb-btn {
+      background: var(--playbook-accent);
+      color: #0e0f13;
+      font-weight: 800;
+      font-size: 12.5px;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .pb-btn:hover { filter: brightness(1.1); }
+    .pb-btn-sub {
+      background: var(--panel2);
+      color: var(--ink);
+      font-weight: 600;
+      font-size: 12.5px;
+      border: 1px solid var(--line);
+      padding: 7px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .pb-btn-sub:hover { border-color: var(--playbook-accent); }
+
+    /* 인터랙티브 체크리스트 */
+    .pb-checklist {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 18px;
+      margin: 18px 0;
+    }
+    .pb-checklist-title {
+      font-weight: 800;
+      color: var(--playbook-accent);
+      font-size: 14px;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+    .pb-check-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 6px 0;
+      cursor: pointer;
+      color: var(--ink);
+      font-size: 14px;
+    }
+    .pb-check-box {
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--line);
+      border-radius: 4px;
+      flex-shrink: 0;
+      margin-top: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .pb-check-row.checked .pb-check-box {
+      background: var(--playbook-accent);
+      border-color: var(--playbook-accent);
+    }
+    .pb-check-row.checked .pb-check-box::after {
+      content: "✓";
+      color: #0e0f13;
+      font-weight: 900;
+      font-size: 12px;
+    }
+    .pb-check-row.checked > span:last-child {
+      text-decoration: line-through;
+      color: var(--ink-dim);
+    }
+    .pb-progress {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+      font-size: 12px;
+      color: var(--playbook-accent);
+      font-weight: 700;
+    }
+
+    .pb-copy-toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--playbook-accent);
+      color: #0e0f13;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 13px;
+      z-index: 1000;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      animation: pbSlideUp 0.3s ease;
+    }
+    @keyframes pbSlideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  
+  <div id="root"></div>
+
+  <!-- React App Code (Babel 빌드 연동) -->
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const CHAPTERS = [
+      {
+        id: 0,
+        title: '프롬프트 이해와 파라미터',
+        kicker: 'CHAPTER 00 · 핵심 엔진 지식',
+        desc: 'Prompt Architecture 백서 전체 슬라이드 내용을 빠짐없이 상세히 반영한 마스터 코스입니다.',
+        theory: `### 1. 프롬프트 엔지니어링의 본질 (인터페이스 엔지니어링)
+프롬프트 엔지니어링은 단순히 인공지능에게 질문을 던지는 잡무가 아닙니다. 거대언어모델(LLM) 시스템의 내부 메커니즘을 온전히 이해하고, 모델의 한계점과 잠재력을 명시적으로 파악하여 가장 최적의 아웃풋을 뽑아내는 일종의 **'인터페이스 엔지니어링(Interface Engineering)'**입니다. 
+
+### 2. 핵심 엔진 용어 사전
+*   **LLM (대규모 언어 모델)**: 방대한 텍스트 데이터를 사전 학습하여 문맥의 다음 가장 유력한 어휘를 찾아내는 확률론적 예측 엔진입니다.
+*   **Token (토큰)**: AI가 텍스트를 연산하고 인식하는 최소 기본 단위입니다. 한글은 영어와 달리 **1글자가 2~3개의 토큰**을 차지하므로 프롬프트 작성 시 미사여구를 소거하는 압축 기술이 비용 및 처리 속도 면에서 극히 권장됩니다.
+*   **Context Window (컨텍스트 윈도우)**: 모델이 한 번에 기억하고 소화할 수 있는 정보의 한계량입니다.
+*   **Hallucination (할루시네이션)**: AI가 사실에 기반하지 않는 잘못된 정보를 아주 유창하고 그럴듯하게 지어내는 환각 현상입니다.
+*   **Embedding (임베딩)**: 자연어 텍스트의 의미를 고차원 숫자 벡터로 변환하여 컴퓨터가 의미론적 유사성을 계산하도록 돕는 과정입니다.
+*   **In-context Learning (인-컨텍스트 러닝)**: 모델을 추가 파인튜닝(재학습)하지 않고 오직 프롬프트의 지시와 몇 가지 예제만으로 모델의 답변 스타일을 실시간 조율하는 기법입니다.
+
+### 3. 샘플링 파라미터 제어 (Sampling Parameters)
+*   **Temperature (온도)**: 출력 무작위성을 제어합니다. **낮을수록(0에 가까움)** 극단적인 사실/수학/코딩의 결정론적 답변을 출력하며, **높을수록(1에 가까움)** 참신하고 창의적인 아이디어를 출력합니다.
+*   **Top-K**: 가장 확률 분포가 높은 상위 K개의 단어 후보만 남기는 필터링 파라미터입니다.
+*   **Top-P**: 누적 확률 분포가 P% 내에 들어오는 토큰만 후보군으로 제한합니다.
+*   **Repetition Loop Bug**: 온도가 극단적으로 너무 낮으면 같은 말을 무한히 반복하고, 너무 높으면 엉뚱한 루프로 회귀해 횡설수설하는 버그가 발생합니다. (창의적 작업은 Temp 0.9 / Top-P 0.99, 논리적 코딩 작업은 Temp 0.1 / Top-P 0.9에서 설정을 권장합니다.)
+
+### 4. 프롬프트를 구성하는 5가지 필수 블록
+1.  **지시사항 (Instructions)**: 모델이 완수해야 하는 궁극적 미션.
+2.  **맥락 (Context)**: AI가 상황에 맞춰 대처하도록 제공하는 세부 배경 정보.
+3.  **역할 지정 (Role)**: 모델에게 특정 전문직 연차나 성격을 씌우는 페르소나.
+4.  **입력 & 출력 데이터 (Input/Output)**: 처리할 데이터와 마크다운, 표 등 결과 규격화.
+5.  **제약 조건 (Constraints)**: 절대 넘지 말아야 할 안전 및 가드레일 조건.
+
+### 5. 기초 기법과 구분자 사용법
+*   **Zero-shot**: 아무런 예제 없이 직접적으로 즉각 지시하는 방식입니다.
+*   **Few-shot**: 1~5개의 간단한 예시 입출력 구조를 먼저 제공하여 출력 포맷과 논리를 정형화시키는 방식입니다.
+*   **Delimiters(구분 기호)**: \`---\` 혹은 \`\`\` 등의 기호를 써서 질문 영역과 참고 데이터를 명확히 격리해 줌으로써 프롬프트 인젝션(해킹)과 맥락 혼란을 근원적으로 예방합니다.
+
+### 6. System, Context, Role 프롬프팅의 위계
+*   **System (시스템)**: 모델 전체 런타임에 작용하는 절대적인 가이드라인 규칙 (예: 항상 JSON으로만 대답해라).
+*   **Context (맥락)**: 현재 작업이 행해지는 배경 (예: 80년대 레트로 게임 포스팅 작성 중).
+*   **Role (역할)**: 말투와 성격 지배 (예: 킹콩처럼 말해라 vs 우아한 예술 해설가처럼 말해라).
+
+### 7. 고급 논리 아키텍처 (CoT, Self-Consistency, ToT, RAG, ReAct)
+*   **Chain-of-Thought (CoT)**: "단계별로 생각해 보자"는 문장을 심어 AI가 중간 계산/추론 노드를 직접 글로 쓰며 논리 오류와 연산 오차를 예방하게 만드는 사슬 기법입니다.
+*   **Self-Consistency (자기일관성)**: AI를 높은 온도(Temperature)에서 여러 경로로 동시에 독립 실행시킨 후 다수결 투표를 통해 가장 정합성이 높은 최종 결과물을 선별하는 투표 방식입니다.
+*   **사고의 나무 (Tree-of-Thought, ToT)**: 여러 추론 노드를 동시에 수형도로 펼쳐가며, 유망한 경로는 탐색하고 불필요한 경로는 조기에 가지치기하는 알고리즘적 프롬프팅입니다.
+*   **RAG (검색 증강 생성)**: 프롬프트 외부에 존재하는 문서나 사내 데이터를 실시간 검색해서 맥락에 붙여 넣어 할루시네이션을 원천 억제하는 기술입니다.
+*   **ReAct (Reason + Act)**: AI가 "생각 ➔ 행동(웹 검색 등 도구 실행) ➔ 관찰 ➔ 다음 생각" 구조를 무한 루프처럼 연쇄적으로 밟으며 외부 리소스와 결합해 스스로 임무를 완수하는 에이전틱 워크플로우의 모태입니다.
+
+### 8. 프롬프트 아키텍트의 블루프린트 템플릿 4종
+1.  **콘텐츠 생성**: 작성 대상을 [교사]로 제한, 어조 [정중히], 핵심포인트 3가지 지정.
+2.  **다면 분석**: [주제]에 대해 [관점 1, 2, 3]의 시각에서 주장, 근거, 한계를 명시해 결론 제시.
+3.  **문제 해결**: [문제 유형]을 도표나 수식을 써서 원리부터 차근차근 규명.
+4.  **비교 분석**: [항목 A]와 [항목 B]의 강약점을 주어진 기준에 맞게 비교해 적합한 옵션 제안.
+
+### 9. 도메인별 최적화 매트릭스
+*   **코딩**: 언어, 라이브러리, PEP 8 스타일 지정 필수. 예상 입출력 예외 처리 지정.
+*   **데이터 분석**: 데이터 구조, 변수, 사용할 통계 방법론, 경영진용 핵심 인사이트 3줄 요약.
+*   **마케팅/글쓰기**: 타겟 페르소나, 브랜드 톤, SEO 키워드, 소제목 및 글머리 기호, 행동 촉구(CTA) 문구 강제.
+*   **학술 연구**: 가설, 이론적 프레임워크, 논문 형식(APA 스타일 등) 및 문헌 검토 한계점 지목.
+
+### 10. 최적화를 위한 26가지 황금 원칙 요약
+*   **구조**: 한 번에 한 가지 지시, 중요 조건은 문서의 최상단이나 최하단에 배치.
+*   **제약**: 포맷(JSON, 표 등)을 엄격히 지정, AI가 하지 말아야 할 한계선 설정.
+*   **트러블슈팅**: AI 답변이 너무 뻔하면 톤앤매너와 배경 정보를 극대화해 다시 강조. 지시를 누락하면 순차적 대화 체인으로 분리 지시.
+
+### 11. 2026 AI 트렌드와 윤리
+*   텍스트뿐 아니라 오디오/비디오가 결합된 **멀티모달 프롬프팅**과 에이전트들이 서로 비평하며 피드백하는 **에이전트 워크플로우**가 미래 트렌드입니다.
+*   항상 AI를 절대 신뢰하지 않고 RAG나 다각도 교차 검증을 거치는 비판적 태도가 필요하며, 악의적인 프롬프트 인젝션 해킹 방어 지식(윤리 가드레일)이 필수적입니다.`,
+        
+        missions: [
+          {
+            subId: 1,
+            title: '경제적인 핵심 압축 질문 설계',
+            situation: '📢 문제: 토큰 소모량을 최소화하기 위해, AI에게 "2026년 트렌드 키워드를 알려줘"라는 요청을 미사여구 없이 **글자 수 10자 이하의 극단적인 단답식 핵심 지시어**로만 구성하여 작성해 보세요.',
+            concept: '토큰 절약을 위해 불필요한 보일러플레이트 조사와 수식어를 완전히 배제하는 압축 기법입니다.',
+            checkPassed: (text) => text.trim().length > 0 && text.trim().length <= 10,
+            feedbackText: (passed) => passed ? '⚡ 압축 토큰 최적화 완료! 실행하세요.' : '💡 팁: 불필요한 공백과 서술어를 다 지우고 10자 이하로 핵심만 쓰세요.',
+            badResponse: '🤖 [토큰 과소비 AI]: 질문해주셔서 감사합니다! 2026년도에 유행할 글로벌 비즈니스 트렌드 키워드가 궁금하시군요. 상세한 키워드 리스트를 분석하여 알려드리겠습니다.',
+            successResponse: '👑 [토큰 최적화 통과]\n"전송된 프롬프트가 단 2토큰 수준으로 극단적으로 압축되었습니다! 비용과 처리 성능 면에서 가장 이상적인 엔지니어링 형태입니다."',
+            answerExample: '2026 트렌드'
+          },
+          {
+            subId: 2,
+            title: '작업 성격에 따른 온도(Temperature) 지정',
+            situation: '📢 문제: "수학 연산 문제를 풀 예정이니 Temperature(온도) 파라미터를 0으로 설정해서 일관된 결과를 보장해 주세요."처럼 **"온도" 또는 "Temperature" 키워드와 숫자값("0" 또는 "0.9" 또는 "낮게")을 포함해 파라미터 규칙**을 지정하세요.',
+            concept: '작업의 성향(사실 지향 vs 창의 지향)에 따라 어울리는 온도 파라미터를 명시하는 훈련입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasTemp = val.includes('온도') || val.toLowerCase().includes('temperature');
+              const hasVal = ['0', '0.9', '낮게', '높게'].some(k => val.includes(k));
+              return hasTemp && hasVal;
+            },
+            feedbackText: (passed) => passed ? '⚡ 파라미터 조율 명령 인식! 실행 가능.' : '💡 팁: 문장에 "온도(혹은 Temperature)"와 조절 값("0" 혹은 "0.9")을 넣어주세요.',
+            badResponse: '🤖 [파라미터 미지정 AI]: 저는 항상 기본 온도값인 0.7 수준으로 설정되어 무난하고 평범한 대답만 뱉을 수 있습니다.',
+            successResponse: '⚖️ [파라미터 튜닝 완료]\n"Temperature: 0으로 지시되어 일관되고 사실적인 논리 모드로 진입합니다. 무작위 단어 선택이 억제되고 정확한 계산/코딩 추론이 준비되었습니다."',
+            answerExample: '수학 연산 문제를 풀 예정이니 Temperature(온도) 파라미터를 0으로 설정해서 일관된 결과를 보장해 주세요.'
+          },
+          {
+            subId: 3,
+            title: '할루시네이션(환각) 방어벽 프롬프트',
+            situation: '📢 문제: AI가 모르는 지식을 그럴듯하게 뻥쳐서 지어내는 현상을 막으려 합니다. **"출처" 또는 "모르면" 단어와 "팩트" 또는 "근거"를 포함해, 답변할 수 없는 질문은 모른다고 시인하게 만드는 제약 사항**을 내려 보세요.',
+            concept: '거짓 정보를 방지하고 정답의 확실성을 규제하기 위해 예외 케이스(Jailbreak/환각) 방어선을 세우는 훈련입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasSource = val.includes('출처') || val.includes('모르면') || val.includes('모른다고');
+              const hasFact = val.includes('팩트') || val.includes('근거') || val.includes('사실');
+              return hasSource && hasFact && val.length >= 8;
+            },
+            feedbackText: (passed) => passed ? '⚡ 할루시네이션 방어 프롬프트 인식! 실행하세요.' : '💡 팁: "모르면" 모른다 하고 "근거/팩트"에 기반하라는 지시를 포함하세요.',
+            badResponse: '🤖 [환각 증상 AI]: 네! 동덕여대 2026년 축제 초청 가수가 마이클 잭슨과 비틀즈로 확정되었습니다. (거짓 정보 창출)',
+            successResponse: '🛡️ [가드레일 방어 가동]\n"경고 가드레일이 활성화되었습니다. [AI 응답 변경: 주어진 문서에 해당 정보가 없거나 사실에 부합하지 않으므로 본 질문에는 답변할 수 없습니다. 사실 근거를 다시 확인해 주세요.] 할루시네이션 차단 완료!"',
+            answerExample: '주어진 내용에 없는 질문을 하거나 모르는 사실이 있다면 지어내지 말고 "모릅니다"라고 정확한 근거와 팩트에 기반해서 답변하세요.'
+          }
+        ],
+
+        quizQuestion: 'LLM 답변에서 같은 문장이 무한 반복 출력되는 Repetition Loop Bug(반복 루프 버그)가 발생할 때, 주로 조정해야 하는 핵심 파라미터는 무엇인가요?',
+        quizOptions: [
+          'Embedding (임베딩 벡터 차원 수)',
+          'Temperature (출력 온도 파라미터)',
+          'Context Window (텍스트 범위)',
+          'API Auth Key (인증 키)'
+        ],
+        quizAnswerIdx: 1,
+        quizExplain: '정답은 **Temperature (출력 온도)**입니다. 온도가 극단적으로 너무 낮으면 동일한 단어 시퀀스를 기계적으로 계속 선택하여 무한 루프 버그가 생기고, 너무 높으면 엉뚱한 이전 대화 노드로 회귀하여 같은 문체로 튕겨버립니다.'
+      },
+      {
+        id: 1,
+        title: '프롬프트 엔지니어링 개요',
+        kicker: 'CHAPTER 01 · 기본 요소',
+        desc: 'Google Cloud 가이드에 명시된 프롬프트 엔지니어링의 정의와 4대 필수 요소를 완벽히 학습합니다.',
+        theory: `### 1. 프롬프트 엔지니어링이란 무엇인가?
+Google Cloud 공식 백서에 따르면, **프롬프트 엔지니어링(Prompt Engineering)**은 거대언어모델(LLM)로부터 가장 정확하고 유용한 응답을 유도해 내기 위해 입력 프롬프트를 미세 조정하고 설계하는 기술적 학문입니다. 단순히 인공지능에게 질문을 던지는 것을 넘어, 모델의 가중치와 사전 학습 데이터를 효율적으로 탐색하도록 이끄는 '길잡이' 역할을 합니다.
+
+### 2. 프롬프트의 4대 핵심 구성 요소
+성공적인 비즈니스급 프롬프트를 설계할 때는 다음 4가지 요소가 조화롭게 내재되어 있어야 합니다:
+1. **지시사항 (Instruction)**: AI가 구체적으로 수행할 행동(요약하라, 분류하라, 작성하라 등).
+2. **정보 맥락 (Context)**: 수신 대상, 목표물, 톤앤매너 등 배경 지식.
+3. **입력 데이터 (Input Data)**: 실제로 AI가 처리해야 할 원본 데이터 또는 텍스트 본문.
+4. **출력 형식 (Output Format)**: 표(Table), JSON, 글머리 기호 등 최종 결과물의 구조 지정.`,
+        
+        missions: [
+          {
+            subId: 1,
+            title: '나의 전공과 프롬프트 학습 다짐',
+            situation: '📢 문제: 본인의 소중한 대학 전공(예: 콘텐츠디자인)을 AI에게 알리고, 이에 맞춰 오늘 3시간 수업 동안 배울 프롬프트 엔지니어링에 관한 다짐을 명확히 설명해 달라는 프롬프트를 작성하세요.',
+            concept: '나의 소속(맥락)과 배우고자 하는 다짐 목표(상황)를 AI에게 학습시키는 첫 걸음입니다.',
+            checkPassed: (text) => text.trim().length >= 10,
+            feedbackText: (passed) => passed ? '⚡ 다짐 텍스트 분석 성공! 실행 버튼을 누르세요.' : '💡 팁: 본인의 전공 상황과 포부를 10자 이상 텍스트로 적어 주세요.',
+            badResponse: '🤖 [일반 AI의 어색한 답변]\n"프롬프트 엔지니어링은 인공지능에게 프롬프트를 던져 원하는 대답을 얻는 기술을 일컫습니다. 열심히 공부해 보세요."',
+            successResponse: '👑 [갓벽 AI의 맞춤형 격려]\n"전공하신 분야의 무궁한 가치와 결합된다면 프롬프트 엔지니어링은 당신의 가장 강력한 지적 생산 도구가 될 것입니다. 1단계 첫 실습 퀘스트 통과를 축하합니다!"',
+            answerExample: '저는 콘텐츠디자인을 전공하는 대학생입니다. 오늘 3시간 동안 프롬프트 엔지니어링의 4대 구성 요소를 완벽히 마스터하여 제 전공 작품에 적용할 훌륭한 스토리 기획을 뽑아내겠습니다.'
+          },
+          {
+            subId: 2,
+            title: 'AI 콘텐츠 크리에이터의 수업 목표',
+            situation: '📢 문제: 미래의 훌륭한 AI 콘텐츠 크리에이터로서, AI에게 오늘 배울 수업 목표에 대해 간단한 요약을 명확히 지시하고 본인의 크리에이팅 목표를 10자 이상 덧붙여 보세요.',
+            concept: '지시어(요약하라)와 크리에이터로서의 역할(페르소나)을 섞는 초기 훈련입니다.',
+            checkPassed: (text) => text.trim().length >= 10,
+            feedbackText: (passed) => passed ? '⚡ 크리에이터 목표 조건 만족! 실행 가능합니다.' : '💡 팁: 크리에이터로서의 지향점이 담기도록 10자 이상 작성하세요.',
+            badResponse: '🤖 [일반 AI]: 목표를 요약하라는 지시를 확인했습니다. 최선을 다해 요약하겠습니다.',
+            successResponse: '👑 [갓벽 AI의 크리에이팅 로드맵]\n"목표를 확인했습니다. AI 기술을 예술 및 기획에 접목하는 우수한 콘텐츠 디렉터가 되기 위한 맞춤형 챕터 1-2 과제를 클리어하셨습니다. 다음 과제로 전진해 볼까요?"',
+            answerExample: 'AI 콘텐츠 크리에이터의 관점에서 오늘 진행되는 제미나이 프롬프트 마스터 클래스의 강의 주제를 요약해 주고, 제가 만들 3D 캐릭터 세계관을 더 고도화하기 위한 피드백을 주세요.'
+          },
+          {
+            subId: 3,
+            title: '새내기 대학생의 생산성 선언',
+            situation: '📢 문제: 새내기 대학생의 입장에서 AI에게 "앞으로 AI를 활용해 과제(리포트) 작성 속도를 2배 단축하겠다"는 도전적인 상황을 선언하고 이에 대한 구체적인 피드백을 요구하세요.',
+            concept: '새내기(맥락)와 리포트 작성 속도 개선(상황)을 조합해 AI에게 유용한 조언을 얻는 기법입니다.',
+            checkPassed: (text) => text.trim().length >= 10,
+            feedbackText: (passed) => passed ? '⚡ 생산성 선언 프롬프트 승인! 실행해 보세요.' : '💡 팁: 리포트 속도 단축 상황을 담아 10자 이상 프롬프트를 쳐주세요.',
+            badResponse: '🤖 [일반 AI]: 리포트 작성을 빠르게 하고 싶으시군요. 검색을 많이 활용하시면 속도가 빨라집니다.',
+            successResponse: '👑 [갓벽 AI의 리포트 생산성 가이드]\n"개인 학습 최적화를 위한 리포트 작성 팁을 추천합니다. 자료 조사, 아웃라인 빌드, 초안 검토 3단계 워크플로우에 따라 작업을 지시하면 시간 효율성이 200% 증가합니다. 챕터 1의 모든 실습 클리어!"',
+            answerExample: '저는 대학교 1학년 새내기 학생입니다. 이번 학기에 과제와 리포트 작성 속도를 2배로 단축하여 효율적으로 학업을 마치고 싶은데, 이를 달성하기 위한 구체적인 AI 연동 작성 루틴을 제안해 주세요.'
+          }
+        ],
+
+        quizQuestion: '다음 중 Google Cloud 백서에 명시된 프롬프트의 의미론적 4대 구성 요소에 해당하지 않는 것은 무엇인가요?',
+        quizOptions: [
+          '지시사항 (Instruction)',
+          '출력 형식 (Output Format)',
+          'API 인증 토큰 (API Auth Token)',
+          '정보 맥락 (Context)'
+        ],
+        quizAnswerIdx: 2,
+        quizExplain: '정답은 **API 인증 토큰**입니다. API 토큰은 네트워크 통신 및 권한 획득을 위한 도구일 뿐, 프롬프트의 의미론적 설계 요소가 아닙니다.'
+      },
+      {
+        id: 2,
+        title: '페르소나와 역할 부여',
+        kicker: 'CHAPTER 02 · Persona Setting',
+        desc: 'AI 모델에게 특정 연차의 직업적 페르소나를 씌워 답변의 수준을 전문가 급으로 통제합니다.',
+        theory: `### 1. 역할 설정(Role Prompting)의 의의
+AI에게 정체성을 부여하지 않으면, AI는 인터넷상의 온갖 잡다한 잡식성 데이터를 평균 내어 매우 뻔하고 무성의한 대답을 합니다. 반면에 **"당신은 20년 경력의 수의사입니다"** 혹은 **"소프트웨어 아키텍트입니다"**처럼 페르소나를 씌워주면, 그 직업군이 사용하는 전문 단어, 문체, 추론 알고리즘이 우선적으로 활성화됩니다.
+
+### 2. 구체적인 연차와 전문성 명시
+단순히 "변호사로서 대답해줘"보다 "대한변호사협회 소속 10년 차 부동산 전문 변호사로서"와 같이 구체적인 전문 단체나 연차를 제시할수록 답변의 엄밀성이 기하급수적으로 높아집니다.`,
+        
+        missions: [
+          {
+            subId: 1,
+            title: '반려견 사료 급여 훈련',
+            situation: '📢 문제: 내 귀여운 포메라니안 강아지가 요즘 사료를 잘 안 먹습니다. 단순 AI 비서 대신 전문적인 배식 가이드를 얻기 위해 **"수의사" 또는 "사육사" 역할을 부여하여 올바른 사료 급여법**을 요구하는 프롬프트를 작성하세요.',
+            concept: '수의사(페르소나) 단어를 포함하여 전문적 의견을 강제해 보는 훈련입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              return ['수의사', '사육사', '훈련사', '수의사로서'].some(k => val.includes(k)) && val.length >= 8;
+            },
+            feedbackText: (passed) => passed ? '⚡ 수의사 페르소나 식별! 실행해 보세요.' : '💡 팁: 문장에 "수의사" 또는 "사육사" 역할을 명확하게 포함해 주세요.',
+            badResponse: '🤖 [바보 AI]: 사료는 마트에서 파는 것 중 맛있는 걸로 하루 두 번 적당히 밥그릇에 가득 담아 주시면 강아지가 왈왈 짖으며 좋아해요!',
+            successResponse: '⚖️ [수의사 AI의 전문 답변]\n"안녕하세요, 반려동물 수의사 AI입니다. 강아지의 사료 급여량은 품종, 성장 단계(월령), 몸무게를 기준으로 하루 에너지 요구량(RER)을 먼저 산출해야 합니다. 성장기 자견(생후 6개월 이하)은 소화기가 취약하므로 하루에 4회로 분할 급여해야 합니다."',
+            answerExample: '당신은 20년 경력의 숙련된 수의사입니다. 저희 집 포메라니안이 최근 입맛을 잃었는데, 건강 상태와 견종 특성에 맞는 안전하고 균형 잡힌 사료 급여 방식과 주의할 점을 의학적으로 상담해 주세요.'
+          },
+          {
+            subId: 2,
+            title: '카페 인테리어 세금 조언',
+            situation: '📢 문제: 이번에 동덕여대 근처에 예쁜 카페 창업을 준비 중인데, 인테리어 비용의 부가세 환급 문제가 고민입니다. **"세무사" 또는 "회계사" 역할을 부여하여 절세 방안**을 자문하는 프롬프트를 작성해 보세요.',
+            concept: '세무사(페르소나) 단어를 사용하여 전문 세무 상담 톤앤매너를 유도하는 훈련입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              return ['세무사', '회계사', '세무'].some(k => val.includes(k)) && val.length >= 8;
+            },
+            feedbackText: (passed) => passed ? '⚡ 세무 전문가 페르소나 식별! 실행 가능.' : '💡 팁: 질문에 "세무사" 또는 "회계사" 직종을 정확히 포함하세요.',
+            badResponse: '🤖 [일반 AI]: 세금은 세무서에 문의하셔야 합니다. 세금 환급은 홈택스에서 신고서를 작성해 내시면 완료됩니다.',
+            successResponse: '⚖️ [세무사 AI의 절세 자문 결과]\n"안녕하십니까, 개인사업 창업 전문 세무사 AI입니다. 인테리어 비용 부가가치세(10%) 환급을 받기 위해서는 반드시 사업자등록번호가 기재된 세금계산서, 사업용 신용카드 결제분, 또는 지출증빙용 현금영수증을 수취하셔야 합니다. 이를 \'적격증빙\'이라 일컬으며..."',
+            answerExample: '당신은 신규 자영업자 전문 세무사입니다. 카페 창업 인테리어 시공을 할 때, 부가가치세를 세법에 따라 환급받기 위해 공사 계약 전후로 확보해야 하는 필수 적격증빙의 종류와 주의사항을 세무사 입장에서 조언해 주세요.'
+          },
+          {
+            subId: 3,
+            title: '코딩 과제 알고리즘 병목 해결',
+            situation: '📢 문제: 파이썬 코딩 과제를 하던 중 반복문 연산 속도가 너무 느려 계속 시간 초과 에러가 납니다. **"개발자" 또는 "엔지니어" 또는 "아키텍트" 역할을 AI에게 부여하여 성능 최적화 코드**를 제공받는 프롬프트를 작성하세요.',
+            concept: '기술 전문가(엔지니어 페르소나)를 씌워 소스코드의 구조적 해결책을 도출하게 합니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              return ['개발자', '엔지니어', '아키텍트', '프로그래머'].some(k => val.includes(k)) && val.length >= 8;
+            },
+            feedbackText: (passed) => passed ? '⚡ 엔지니어 페르소나 식별! 실행해 보세요.' : '💡 팁: "개발자"나 "엔지니어" 등의 코딩 전문가 페르소나를 부여해 보세요.',
+            badResponse: '🤖 [일반 AI]: 코드가 느리면 컴퓨터를 더 좋은 것으로 바꾸거나 연산 데이터의 크기를 인위적으로 축소해 보세요.',
+            successResponse: '💻 [수석 소프트웨어 아키텍트 AI의 답변]\n"반복문 내부의 탐색 병목을 O(N^2)에서 O(N)으로 단축하기 위한 해시테이블 최적화 가이드를 제시합니다. 파이썬의 dict 혹은 set 구조를 활용하여 선형 탐색을 대체하면 실행 시간이 최대 100배 단축됩니다. 2챕터 모든 실습 클리어!"',
+            answerExample: '당신은 구글 출신의 수석 시스템 개발자입니다. 파이썬 다중 반복문에서 발생하는 극심한 연산 지연을 최적화하기 위해, 리스트 검색을 해시 셋 구조로 변경하는 고속 알고리즘 리팩토링 사례를 명쾌하게 작성해 주세요.'
+          }
+        ],
+
+        quizQuestion: 'AI에게 페르소나(역할)를 씌울 때 가장 바람직한 작성 요령은 무엇인가요?',
+        quizOptions: [
+          '단순히 "똑똑한 사람"이라고 묘사한다.',
+          '"10년 차 소아과 전문의"처럼 세부 분야와 연차를 구체적으로 묘사한다.',
+          '영어로만 지시한다.',
+          '반말 and 욕설을 섞어 기를 죽인다.'
+        ],
+        quizAnswerIdx: 1,
+        quizExplain: '정답은 **세부 분야와 연차를 구체적으로 묘사하는 것**입니다. 구체적인 페르소나는 모델이 특정 학술/업무 도메인의 엄밀한 추론 상태를 유지하게 합니다.'
+      },
+      {
+        id: 3,
+        title: '배경 맥락과 어조 조율',
+        kicker: 'CHAPTER 03 · Context & Tone',
+        desc: '수신 대사와의 사제관계나 독감 등의 배경 상황을 제공하여 공손하고 올바른 서신 초안을 유도합니다.',
+        theory: `### 1. 맥락(Context) 설정의 효과
+LLM은 자체적으로 사회적 분위기를 독착적으로 읽지 못합니다. 이메일을 쓰게 할 때, 받는 이가 "동아리 친구"인지 "대학교수님"인지에 따라 작성 톤앤매너가 극단적으로 바뀌어야 합니다. 
+
+### 2. 상황적 제약 조건 제공
+"독감 확진 판정으로 등교가 어려운 상황"과 같이 현재 벌어진 배경 맥락과 문제 상황을 명료하게 묘사하여, 불필요하게 AI가 지어내서 오해를 불러일으킬 여지(할루시네이션)를 철저히 방어해야 합니다.`,
+        
+        missions: [
+          {
+            subId: 1,
+            title: '교수님 대상 결석 메일 대필',
+            situation: '📢 문제: 갑작스러운 독감에 걸려 격리 권고를 받았습니다. AI콘텐츠제작 담당 **교수님(수신자)께 정중하게 사정을 설명하고 병결 출석 인정을 요청**하는 결석계 메일 초안을 작성하도록 요구하는 프롬프트를 설계하세요.',
+            concept: '교수님(대상 맥락)과 독감/결석(문제 상황)이 명시된 격식 메일 설계 훈련입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasProf = val.includes('교수');
+              const hasReason = ['독감', '병결', '결석', '아파서'].some(k => val.includes(k));
+              return hasProf && hasReason && val.length >= 10;
+            },
+            feedbackText: (passed) => passed ? '⚡ 메일 맥락 포착 완료! 실행해 보세요.' : '💡 팁: "교수님" 수신자와 "독감/결석" 등의 핵심 단어를 함께 작성하세요.',
+            badResponse: '🤖 [비서 AI]: 교수 안녕. 나 오늘 몸살이 심해서 결석할게요. 과제는 대충 담주에 낼게요. 수고하셈.',
+            successResponse: '📧 [갓벽 AI의 결석계 메일]\n"제목: [병결 신청] AI콘텐츠제작 수업 결석 승인의 건 (학번: 20261234 홍길동)\n\n존경하는 교수님, 안녕하십니까. 다름이 아니라 어제 저녁 갑작스러운 고열로 응급실을 내원하여 A형 독감 확진 판정을 받았습니다. 타인 전격 격리 권고로 인해 부득이 금일 대면 수업에 불참하게 되었음을 고개 숙여 양해 부탁드립니다. 진단서를 첨부하오니 출석 인정 검토를 부탁드립니다. 감사합니다."',
+            answerExample: 'AI콘텐츠제작 담당 교수님께 드릴 이메일을 작성해줘. 어제 밤 A형 독감 판정을 받아 부득이하게 이번 주 수업에 결석하며, 병원 진료확인서를 유첨하오니 출석을 인정해 달라는 정중한 어조의 결석계 초안을 작성해줘.'
+          },
+          {
+            subId: 2,
+            title: '해외 배송 사고 영문 사과장',
+            situation: '📢 문제: 해외 고객에게 보낸 도자기 컵이 배송 중 파손되었고 배송도 2주 늦어졌습니다. **해외 "고객"에게 전액 "환불" 혹은 재배송을 정중히 사과하며 제안하는 격식 있는 영문 메일** 작성을 지시하세요.',
+            concept: '글로벌 고객(대상)과 배송 사고(상황)에 대응하는 고도화된 비즈니스 톤앤매너 프롬프팅입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasTarget = ['고객', '바이어', '소비자'].some(k => val.includes(k));
+              const hasAction = ['환불', '사과', '지연', '배송'].some(k => val.includes(k));
+              const hasEng = ['영어', '영문', 'English'].some(k => val.includes(k));
+              return hasTarget && hasAction && hasEng && val.length >= 10;
+            },
+            feedbackText: (passed) => passed ? '⚡ 글로벌 CS 맥락 충족! 실행해 보세요.' : '💡 팁: "고객", "환불/사과" 및 "영문/영어" 조건이 들어가야 합니다.',
+            badResponse: '🤖 [일반 AI]: Dear customer, your cup was broken. We are sorry for delay. We can refund your money.',
+            successResponse: '📧 [갓벽 AI의 영문 사과 이메일]\n"Subject: Sincere Apologies for Order Damage & Delivery Delay\n\nDear Customer,\nWe are writing to deeply apologize for the damage of your ceramic cup during transit. We have processed a 100% full refund to your card. Should you wish, we can also dispatch a new replacement today free of charge. Thank you for your understanding. Sincerely, CS Lead."',
+            answerExample: '도자기 컵 배송 중 파손 및 2주 지연 사고를 겪은 해외 바이어 고객에게 보내는 비즈니스 사과 메일을 영어로 작성해줘. 100% 환불 처리 또는 즉각적인 재배송 옵션을 제시하며 깊은 사과를 담은 정중한 문장이어야 해.'
+          },
+          {
+            subId: 3,
+            title: '신입 사원 샌드위치 피드백',
+            situation: '📢 문제: 동아리 신입 부원이 작성한 기획서에 보완점이 너무 많습니다. 사원의 기를 살려주며 의사소통하기 위해 **"칭찬"으로 시작해 "개선"점을 짚고 "격려"로 끝맺는 샌드위치 면담법 피드백** 작성을 지시하세요.',
+            concept: '상대방의 기분(맥락)을 존중하면서도 기획서의 데이터 보완(상황)을 명확히 하는 피드백 유도 기법입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasTarget = ['신입', '사원', '부원', '후배'].some(k => val.includes(k));
+              const hasKeys = ['칭찬', '개선', '격려', '샌드위치'].some(k => val.includes(k));
+              return hasTarget && hasKeys && val.length >= 10;
+            },
+            feedbackText: (passed) => passed ? '⚡ 피드백 맥락 식별 완료! 실행해 보세요.' : '💡 팁: "신입", "칭찬", "개선", "격려" 등의 3단계 핵심 소통 단어를 섞어 주세요.',
+            badResponse: '🤖 [일반 AI]: 신입사원님 기획서 데이터가 다 비어있어서 다시 작성해 주셔야 합니다. 다음 주 월요일까지 보강하세요.',
+            successResponse: '👥 [갓벽 AI의 샌드위치 피드백 가이드]\n"1단계 (Praise): 기획서의 독창적인 디자인 뷰와 콘셉트 설정이 매우 인상적입니다.\n2단계 (Improvement): 다만 시장 실증 분석 데이터가 부족해 보완이 필요해 보입니다.\n3단계 (Encouragement): 신입사원님의 뛰어난 기획력이라면 완벽히 보완할 것이라 믿습니다. 적극 응원합니다. 3챕터 모든 실습 클리어!"',
+            answerExample: '신입 동아리 부원이 쓴 마케팅 제안서에 데이터 보완 사항이 많아 피드백을 하려 해. 샌드위치 피드백 화법에 맞게, 1단계 제안서의 참신함 칭찬, 2단계 데이터 근거 보강 및 개선 지시, 3단계 다음 주의 성장을 격려하는 멘트로 나누어 정리해줘.'
+          }
+        ],
+
+        quizQuestion: '이메일 작성 프롬프트에 "수신자가 대학교수님"이라는 맥락(Context)을 추가했을 때 AI 결과에 나타나는 변화는 무엇인가요?',
+        quizOptions: [
+          '메일의 전송 속도가 빨라진다.',
+          '존댓말과 격식 체를 사용하는 등 사회적 관계에 부합하는 어조가 형성된다.',
+          '메일 내에 영어 단어가 강제된다.',
+          '아무런 변화도 일어나지 않는다.'
+        ],
+        quizAnswerIdx: 1,
+        quizExplain: '정답은 **사회적 관계에 부합하는 격식 있는 어조가 형성된다**입니다. 수신자의 맥락 정보는 문장 내 단어 선택 확률 분포를 격식 있는 톤으로 강하게 변화시킵니다.'
+      },
+      {
+        id: 4,
+        title: '명확한 지시와 서식화',
+        kicker: 'CHAPTER 04 · Instruction & Format',
+        desc: '게으른 AI를 다스리기 위해 3가지 요점이나 마크다운 표(Table)로 출력을 강력히 제약합니다.',
+        theory: `### 1. 모호한 지시는 모호한 답변을 낳는다
+대다수의 사용자가 "이거 대충 요약해줘"라고 짧게 질문합니다. 이 경우 AI는 임의의 판단으로 불필요하게 긴 보고서 형식이나, 너무 짧은 대답을 내놓습니다. **"핵심 3가지로 글머리 기호(•)를 사용해 정리하라"**와 같이 정량적 조건을 명명해야 합니다.
+
+### 2. 출력 형식의 통제
+엑셀이나 문서에 바로 이식할 수 있도록 **"마크다운 표(Table) 형태로 출력하라"**거나 **"JSON 형식으로 출력하라"**는 명확한 Format 지정은 추가 편집 시간(사후 가공)을 극적으로 줄여줍니다.`,
+        
+        missions: [
+          {
+            subId: 1,
+            title: '신기술 트렌드 3대 요점 요약',
+            situation: '📢 문제: 전고체 배터리 동향 신기술 보고서 요약본이 필요합니다. 바쁜 임원진을 위해 보고서 내용을 **"3가지" 핵심 요점으로 "글머리" 기호(•)를 써서 요약**해 달라고 명령을 내리는 프롬프트를 설계하세요.',
+            concept: '정량 조건(3가지)과 출력 포맷(글머리 기호)을 지시사항에 강제하는 훈련입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasCount = ['3가지', '세 가지', '3개'].some(k => val.includes(k));
+              const hasFormat = ['글머리', '기호', '•', '요점'].some(k => val.includes(k));
+              return hasCount && hasFormat && val.length >= 8;
+            },
+            feedbackText: (passed) => passed ? '⚡ 정량 요약 지시 승인! 실행하세요.' : '💡 팁: 지시 문구에 "3가지"와 "글머리" 기호 조건을 명시해 주세요.',
+            badResponse: '🤖 [일반 AI]: 이 보고서는 배터리의 미래 성장을 분석하고 UAM 교통 구조의 변혁을 다루는 매우 유익한 학술 분석 보고서입니다.',
+            successResponse: '📝 [갓벽 AI의 3줄 요약 결과]\n- • **전고체 배터리 상용화**: 1회 충전당 주행 거리 800km 돌파.\n- • **UAM 도심 셔틀 개설**: 주요 항공 거점 확보 및 배터리 충전 단축.\n- • **AI 스마트 배터리 탑재**: 실시간 발열 자가 통제 기능 확보.',
+            answerExample: '전고체 배터리 미래 기술 트렌드 보고서 원본을 바탕으로, 바쁜 임원 보고용 요약본을 작성해줘. 단, 핵심 사항 3가지 요점만을 골라 글머리 기호(•)를 앞에 붙여서 대답해야 해.'
+          },
+          {
+            subId: 2,
+            title: '품목 매출 실적 마크다운 표 변환',
+            situation: '📢 문제: 쇼핑몰의 품목 매출액 수치가 복잡하게 뒤엉켜 있습니다. 엑셀에 바로 붙여 넣을 수 있도록 **"표" 또는 "Table" 또는 "마크다운" 형태로 매출액과 품목 실적을 구분해 출력**하라는 프롬프트를 작성하세요.',
+            concept: '텍스트가 아닌 2차원 표(Table)로 출력 형식을 규제하여 시인성을 높이는 과정입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              return ['표', 'Table', '테이블', '테이블로', '표로'].some(k => val.includes(k)) && val.length >= 6;
+            },
+            feedbackText: (passed) => passed ? '⚡ 표 서식 지시 성공! 실행하세요.' : '💡 팁: "표"나 "Table" 단어를 포함해 구조화된 서식 출력을 명령하세요.',
+            badResponse: '🤖 [일반 AI]: 헤드폰은 42개 팔아서 1천만 원이고 충전기는 85개 팔았으며 스탠드는 12개 팔았습니다.',
+            successResponse: '📊 [갓벽 AI의 매출 표 출력]\n"| 순위 | 품목 명 | 수량 | 총 매출액 |\n| :---: | :--- | :---: | :---: |\n| 1 | 무선 헤드폰 Pro | 42개 | ₩10,500,000 |\n| 2 | 미니 고속 충전기 | 85개 | ₩2,550,000 |\n| 3 | 스마트폰 스탠드 | 12개 | ₩360,000 |"',
+            answerExample: '쇼핑몰 품목 매출 기록을 표 형식으로 가시화해줘. 품목 명, 판매 수량, 매출 합계를 열로 가지는 마크다운 표(Table) 형태로 최종 변환해 주어야 엑셀에 붙여넣기 쉽습니다.'
+          },
+          {
+            subId: 3,
+            title: '신제품 텀블러 상세페이지 훅 도출',
+            situation: '📢 문제: 48시간 보온보냉 친환경 비건 텀블러가 크라우드 펀딩을 통해 런칭됩니다. 상세페이지 상단에 들어갈 **"강렬한 메인 훅 타이틀 1개"와 "3가지 강점"을 명확히 구분해서 도출**해 달라고 프롬프트를 설계하세요.',
+            concept: '카피라이팅 작업에서 제목(1개)과 상세 특징(3가지)을 구분하는 레이아웃 통제 훈련입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasTitle = ['타이틀', '훅', '카피', '제목'].some(k => val.includes(k));
+              const hasCount = ['3가지', '세 가지', '3개'].some(k => val.includes(k));
+              return hasTitle && hasCount && val.length >= 8;
+            },
+            feedbackText: (passed) => passed ? '⚡ 세일즈 지시 요건 충족! 실행해 보세요.' : '💡 팁: "타이틀/훅" 조건과 특징 "3가지" 조건을 문장에 골고루 넣으세요.',
+            badResponse: '🤖 [일반 AI]: 대나무 비건 텀블러는 독성이 없고 보온 보냉 성능이 좋으니 많은 후원 바랍니다.',
+            successResponse: '🛍️ [갓벽 AI의 세일즈 카피]\n"메인 카피: 얼음이 이틀 뒤에도 살아있다? 첫 번째 48시간 비건 텀블러!\n3대 특장점:\n1. 48시간 온도 홀딩 기술\n2. 100% 대나무 천연 섬유 독성 제로\n3. 미니멀리즘 감성 파스텔 핏. 4챕터 모든 실습 클리어!"',
+            answerExample: '신제품 친환경 비건 텀블러의 상세페이지 카피를 써주세요. 읽는 이의 주의를 사로잡을 강렬한 메인 훅 타이틀 1개와 제품의 성능을 설명하는 핵심 강점 3가지를 명확히 구분해서 줄 바꿈 형식으로 정리해줘.'
+          }
+        ],
+
+        quizQuestion: 'AI 답변을 엑셀 시트에 즉시 복사하여 붙여넣기 가장 알맞은 마크다운 서식 조건은 무엇인가요?',
+        quizOptions: [
+          '일반 단락 요약',
+          '마크다운 표 (Table) 형식',
+          '줄바꿈 없는 한 줄 평',
+          '블록 인용구'
+        ],
+        quizAnswerIdx: 1,
+        quizExplain: '정답은 **마크다운 표 (Table) 형식**입니다. 마크다운 표는 엑셀, 스프레드시트 등에 그대로 복사-붙여넣기 하면 열과 행이 자동으로 완벽 분할 이식됩니다.'
+      },
+      {
+        id: 5,
+        title: 'Chain-of-Thought 논리 설계',
+        kicker: 'CHAPTER 05 · Chain-of-Thought',
+        desc: '논리적 오류와 수학적 오차를 소거하기 위해 AI에게 "단계별로 생각하라"고 유도하는 추론 기법을 학습합니다.',
+        theory: `### 1. 생각의 사슬 (Chain-of-Thought, CoT)의 가치
+거대언어모델(LLM)은 텍스트 생성 특성상 복잡한 논리/수학 문제를 만났을 때, 첫 대답 단어를 성급하게 뱉으려다 전체 연산을 완전히 망가뜨리는 치명적인 결함이 있습니다. 
+
+### 2. "단계별로 생각하기"
+프롬프트 본문에 **"단계별로 차근차근 나누어 생각해 보자(Let's think step by step)"**라는 문장을 넣어주면, AI는 직관적인 단정 대신 내부적 '생각의 사슬' 경로를 중간 문장들로 풀어놓게 됩니다. 이 사소한 추론 단계를 출력하게 유도하는 것만으로 수학 및 논리 연산의 정답률이 20%에서 최대 85%까지 수직 급상승합니다.`,
+        
+        missions: [
+          {
+            subId: 1,
+            title: '복잡한 수학 사칙연산 차근차근 풀기',
+            situation: '📢 문제: "배가 25 상자 있고, 상자당 사과가 8개씩 들어있는데, 그중 12개를 친구에게 주고 남은 개수를 구하라"는 질문을 AI가 실수 없이 풀도록 **"단계별로" 혹은 "차근차근" 또는 "Step" 단어를 포함해 논리적 연산 경로**를 지시해 보세요.',
+            concept: 'CoT 추론을 유도하는 기초 명령 키워드를 프롬프트에 주입하는 연습입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              return ['단계별', '차근차근', 'step'].some(k => val.toLowerCase().includes(k)) && val.length >= 8;
+            },
+            feedbackText: (passed) => passed ? '⚡ CoT 유도 키워드 감지! 실행해 보세요.' : '💡 팁: "단계별로" 혹은 "차근차근" 단어를 훈수에 녹여 작성하세요.',
+            badResponse: '🤖 [성급한 AI]: 상자가 25개 있으므로 최종 남은 배의 개수는 대략 195개입니다. (연산 오차 발생)',
+            successResponse: '🧠 [CoT 추론 작동 결과]\n"1단계: 전체 사과의 총 개수 연산 -> 25 상자 x 상자당 8개 = 200개\n2단계: 친구에게 준 개수 제외 -> 200개 - 12개 = 188개\n최종 정답: 남은 개수는 188개입니다."',
+            answerExample: '배 상자 연산 문제를 풀 때, 실수를 방지하기 위해 단계별로 차근차근 식을 나누어서 최종 정답을 도출해 주세요.'
+          },
+          {
+            subId: 2,
+            title: '사회적 갈등 이슈의 중립적 인과 요약',
+            situation: '📢 문제: "원자력 발전소 증설 논란"에 대해 찬성과 반대 입장이 팽팽히 맞섭니다. 어느 한쪽으로 치우치지 않게 **"찬성 측" 논거와 "반대 측" 논거를 각각 차례대로 나열하여 최종 결론**을 단계적으로 유도하도록 지시해 보세요.',
+            concept: '복잡한 사회/윤리적 화두에 대해 분석 과정을 단계별로 분할하여 서술하게 통제합니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              return val.includes('찬성') && val.includes('반대') && val.length >= 10;
+            },
+            feedbackText: (passed) => passed ? '⚡ 다각도 인과관계 분석 승인! 실행 가능.' : '💡 팁: 찬반 양측의 의견을 단계적으로 서술하라는 조건을 명시하세요.',
+            badResponse: '🤖 [일반 AI]: 원자력 발전은 위험할 수 있고 안전 문제도 있어 추가 건설에 대해서는 신중한 접근이 필요합니다.',
+            successResponse: '🧠 [CoT 중립 요약 결과]\n"1단계 (찬성 측 입장): 친환경 저탄소 고효율 기저 전력 확보 및 산업용 전력 공급 안정성.\n2단계 (반대 측 입장): 방사성 폐기물 처리장의 영구 미확보 및 잠재적 사고 리스크.\n최종 결론: 경제적 이익과 사회적 위험의 합의점이 필요합니다."',
+            answerExample: '원자력 발전 증설에 관하여 찬성 측 입장과 반대 측 입장의 대표적인 논거를 단계별로 나누어 서술해 주고 중립적 어조로 마무리해줘.'
+          },
+          {
+            subId: 3,
+            title: '오류 프롬프트 논리 디버깅',
+            situation: '📢 문제: "우리 회사 마케팅 효율이 떨어진 원인을 바로 알려줘"라는 모호한 프롬프트는 AI의 헛소리를 만듭니다. AI가 **"원인 분석", "해결 대안", "실행 로드맵"을 3단계로 나누어 차례대로 디버깅 보고서**를 쓰도록 지시해 보세요.',
+            concept: '질문을 고도화하여 AI가 분석부터 기획까지 단계별 연쇄 알고리즘을 밟게 만듭니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasSteps = ['단계', '원인', '대안', '분석'].some(k => val.includes(k));
+              return hasSteps && val.length >= 10;
+            },
+            feedbackText: (passed) => passed ? '⚡ 디버깅 체인 구성 완료! 실행하세요.' : '💡 팁: 원인, 대안, 로드맵을 구분해 단계별 보고를 지시하세요.',
+            badResponse: '🤖 [일반 AI]: 광고 효율이 떨어진 이유는 최근 트렌드에 뒤처졌거나 타겟팅이 매력적이지 않기 때문일 수 있습니다.',
+            successResponse: '🧠 [디버깅 CoT 의사결정 보고]\n"1단계 (원인 분석): 최근 CPC 단가 상승 및 광고 소재 노후화.\n2단계 (해결 대안): UGC(사용자 제작 콘텐츠) 위주 숏폼 동영상 광고 교체.\n3단계 (실행 로드맵): 1주차 매체 테스트 -> 2주차 스케일업 실행. 5챕터 모든 실습 클리어!"',
+            answerExample: '우리 브랜드의 광고 효율 저하 문제를 진단하려 합니다. 성급한 조언 대신, 1단계 하락의 핵심 원인 분석, 2단계 개선을 위한 창의적 대안 제안, 3단계 즉각 실행 로드맵 순서로 단계별 보고를 작성하세요.'
+          }
+        ],
+
+        quizQuestion: '생각의 사슬(Chain-of-Thought) 기법이 복잡한 계산이나 논리 추론에서 지니는 핵심 의의는 무엇인가요?',
+        quizOptions: [
+          '데이터 크기를 실시간 압축한다',
+          'AI가 중간 추론 경로를 명시적으로 출력하게 유도하여 연산의 실수와 환각을 극적으로 방지한다',
+          '영어만 쓰도록 어휘를 통제한다',
+          '사용자의 대화 비용을 아껴준다'
+        ],
+        quizAnswerIdx: 1,
+        quizExplain: '정답은 **중간 추론 경로를 출력해 연산 오차와 환각을 방지하는 것**입니다. CoT는 내부 토큰 계산의 시퀀스를 자연스럽게 연장하여 논리의 엄밀성을 보장합니다.'
+      },
+      {
+        id: 6,
+        title: '예시 기반의 Few-shot 러닝',
+        kicker: 'CHAPTER 06 · Few-shot Prompting',
+        desc: 'promptingguide.ai 명세의 핵심인 Few-shot 기법을 활용해, 감정 판독을 1단어로 완벽 통제합니다.',
+        theory: `### 1. Few-shot Prompting이란?
+**Few-shot (퓨샷)** 프롬프팅은 자연어 설명보다 강력한 '작업 예시(Shot)'들을 프롬프트에 직접 몇 쌍 적어주어 AI를 순간 훈련시키는 기법입니다. 자연어 지시만 내릴 경우 AI는 자꾸 불필요한 사설을 늘어놓습니다.
+
+### 2. 퓨샷 프롬프트의 기본 구조
+아래와 같이 입력과 출력의 예제를 대조적으로 몇 쌍 배치합니다:
+\`\`\`text
+리뷰: 배송이 너무 빨라요 -> 감정: 긍정
+리뷰: 포장이 뜯겨왔네요 -> 감정: 부정
+
+분석할 리뷰: 액정이 깨졌어요 -> 감정:
+\`\`\`
+이처럼 화살표나 기호로 관계를 지정해 두면, AI는 쓸데없는 서론/결론을 싹 지우고 오직 예시 포맷 그대로 '부정' 한 단어만 반환합니다.`,
+        
+        missions: [
+          {
+            subId: 1,
+            title: '고객 리뷰 1단어 감정 판독',
+            situation: '📢 문제: 수만 개의 쇼핑몰 후기 중, AI가 구구절절 해설을 뱉지 않고 **오직 "긍정" 또는 "부정" 단어 1개만 출력하도록 화살표 기호("->")와 예시 2쌍**을 포함한 Few-shot 프롬프트를 설계하세요.',
+            concept: '예제 패턴을 통해 자연어 설명이 아닌 구조적 제약으로 1단어 판독을 완성시킵니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasArrow = ['->', ':', '=>'].some(k => val.includes(k));
+              return val.includes('긍정') && val.includes('부정') && hasArrow && val.length >= 20;
+            },
+            feedbackText: (passed) => passed ? '⚡ Few-shot 감정 훈련 승인! 실행하세요.' : '💡 팁: "긍정", "부정" 예시 단어와 화살표 "->"를 섞어 20자 이상 퓨샷을 구성해 주세요.',
+            badResponse: '🤖 [설명충 AI]: 해당 리뷰 문장은 제품의 배송 지연 및 손상에 분노하고 있으므로 감정 사전을 대조한 결과 최종 부정 톤으로 분류됩니다.',
+            successResponse: '🧠 [Few-shot 감정 분류 결과]\n"입력: 액정이 깨져서 왔어요. 환불해주세요.\n출력: 부정"',
+            answerExample: '리뷰: 가볍고 화질이 너무 좋습니다 -> 긍정\n리뷰: 소음이 심하고 고장이 잦네요 -> 부정\n리뷰: 사자마자 깨져서 왔어요 -> '
+          },
+          {
+            subId: 2,
+            title: '영단어 1대1 번역 포맷 학습',
+            situation: '📢 문제: 영어 단어를 입력하면 한글 뜻을 반환하되, 사전식 설명 없이 **오직 "Apple: 사과"처럼 콜론(":")이나 기호를 쓴 예시 3쌍**을 포함한 Few-shot 번역 프롬프트를 빌드하세요.',
+            concept: '콜론(:) 기호 관계의 3개 예제(Shot)를 주어 AI의 번역 포맷을 정형화하는 훈련입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasColon = val.includes(':') || val.includes('->');
+              return hasColon && val.length >= 20;
+            },
+            feedbackText: (passed) => passed ? '⚡ Few-shot 번역 구조화 승인! 실행 가능.' : '💡 팁: "영어단어 : 뜻" 형태의 예시 3개를 입력창에 적어 주세요.',
+            badResponse: '🤖 [일반 AI]: Apple의 한글 번역은 사과입니다. 장미과 낙엽 활엽 교목인 사과나무의 열매를 가리키며...',
+            successResponse: '🧠 [Few-shot 번역기 출력]\n"입력: Banana\n출력: 바나나"',
+            answerExample: 'Desk : 책상\nComputer : 컴퓨터\nWindow : 창문\nWater : '
+          },
+          {
+            subId: 3,
+            title: '대화 로그 속 핵심 정보 JSON 추출',
+            situation: '📢 문제: 대화 텍스트에서 날짜와 장소 정보만 JSON 포맷으로 축약하려 합니다. 설명 텍스트 없이 **대화문-JSON 입출력 관계 2쌍**을 예시로 제공하는 Few-shot 프롬프트를 조립하세요.',
+            concept: 'JSON 규격과 텍스트를 대조하여 퓨샷으로 구조적 데이터를 무조건 출력하게 하는 고도화 기술입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasJson = val.toLowerCase().includes('json') || val.includes('{');
+              const hasShot = val.includes('->') || val.includes(':') || val.includes('=>');
+              return hasJson && hasShot && val.length >= 20;
+            },
+            feedbackText: (passed) => passed ? '⚡ Few-shot JSON 데이터 빌드 성공! 실행하세요.' : '💡 팁: JSON 포맷 형태의 입출력 예시 2쌍을 텍스트에 포함해 주세요.',
+            badResponse: '🤖 [일반 AI]: 대화 내용에서 날짜는 8월 3일이며, 약속 장소는 동덕여대 민주광장으로 파악되는 유용한 미팅 정보입니다.',
+            successResponse: '🧠 [Few-shot JSON 추출 결과]\n"{\n  \'date\': \'2026-08-03\',\n  \'location\': \'Dongduk Univ Plaza\'\n}\n\n📌 6챕터 모든 실습 클리어!"',
+            answerExample: '입력: 내일 모레인 10월 2일 강남역 스터디룸에서 만나자 -> {"date": "10-02", "loc": "Gangnam"}\n입력: 다음 주 월요일인 5일에 학교 도서관에서 팀플 어때? -> {"date": "05", "loc": "Library"}\n입력: 모레 오후 3시에 홍대 카페에서 회의합시다 -> '
+          }
+        ],
+
+        quizQuestion: 'Few-shot 프롬프팅 기법이 Zero-shot에 비해 가진 가장 강력한 장점은 무엇인가요?',
+        quizOptions: [
+          '모델의 파라미터를 영구 수정한다',
+          '말과 규칙으로 설명하기 복잡한 답변의 구조, 패턴, 출력 포맷을 완벽히 모방시킨다',
+          '인터넷 연결 없이도 작동하게 만든다',
+          '영어 대답만을 강제한다'
+        ],
+        quizAnswerIdx: 1,
+        quizExplain: '정답은 **말과 규칙으로 설명하기 복잡한 답변의 구조, 패턴, 출력 포맷을 완벽히 모방시키는 것**입니다. 퓨샷은 자연어 서술 규칙보다 직관적이고 강력하게 출력 구조를 복제합니다.'
+      },
+      {
+        id: 7,
+        title: '최종 실전 평가 및 수료',
+        kicker: 'CHAPTER 07 · Certification',
+        desc: '앞서 배운 모든 4대 요소, CoT 논리 설계, 그리고 퓨샷의 정수를 총집대성하여 대학교 공식 이수증을 획득하세요.',
+        theory: `### 🚀 파이널 보스 레이드 가이드
+대단하십니다! 이제 프롬프트 엔지니어링의 핵심인 **역할(Persona)**, **맥락(Context)**, **상황(Situation)**, **작업 및 서식(Task & Format)** 조건을 한 문장 속에 유기적으로 집대성하는 종합 실습 단계입니다.
+
+*   **미션 상황**: 동덕여대 대동제 AI 체험 부스의 성공적인 학생 참여를 위해, 선착순 사은품 혜택을 명시하고 해시태그를 포함한 힙한 인스타 홍보 카피를 인공지능이 뱉게 만들어야 합니다.
+*   이번 최종 실습과 하단 수료 퀴즈를 맞히면, 대학교 수업 과제 제출에 유용한 **공식 이수증 발급 패널**이 활성화됩니다.`,
+        
+        missions: [
+          {
+            subId: 1,
+            title: '대동제 AI 체험 부스 마케팅 피드',
+            situation: '📢 문제: 동덕여대 축제 AI 부스 대필이 필요합니다. **"마케터" 페르소나와 축제 혜택 상황, "해시태그" 형식**을 유기적으로 결합하여 프롬프트를 설계하세요.',
+            concept: '페르소나(마케터), 맥락(동덕 대동제), 상황(사은품 혜택), 서식(해시태그) 4대 요소 조립 시험입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasRole = ['마케터', '카피라이터', '전문가', '작가'].some(k => val.includes(k));
+              const hasSituation = ['축제', '대동제', '동덕'].some(k => val.includes(k));
+              const hasEvent = ['혜택', '사은품', '이벤트', '선물'].some(k => val.includes(k));
+              const hasFormat = ['해시태그', '#', '이모지'].some(k => val.includes(k));
+              return hasRole && hasSituation && hasEvent && hasFormat && val.length >= 18;
+            },
+            feedbackText: (passed) => passed ? '⚡ 축제 부스 마케팅 요건 완료! 실행해 보세요.' : '💡 팁: [마케터], [축제], [혜택], [해시태그] 단어가 고루 포함되어야 합니다.',
+            badResponse: '🤖 [일반 AI]: 동덕여대 민주광장에서 AI 체험 부스가 열립니다. 와서 사진 인화도 하고 가세요. 감사합니다.',
+            successResponse: '👑 [최종 보스 클리어 - 마케팅 피드 결과]\n"💜 동덕여대 학우분들의 상상력이 현실이 되는 공간! AI 크리에이터 부스로 초대합니다! 💜\n\n단 3초 만에 나만의 앨범 커버를 그리는 AI 드로잉 체험부터 내 목소리로 만드는 사운드 AI 작곡 체험까지! 민주광장 AI Lab 부스에서 상상 그 이상의 즐거움을 만끽하세요! 🚀\n\n📅 일시: 대동제 기간 내 상시 운영\n🎁 특별 혜택: 선착순 100명 네온 프로필 액자 무료 인화 + 시원한 에이드 1잔 무료 증정!\n\n#동덕여대 #대동제 #AI콘텐츠제작 #동덕축제부스"',
+            answerExample: '당신은 인스타그램 트렌드를 꿰뚫고 있는 힙한 마케터입니다. 동덕여대 대동제 기간 동안 열리는 AI 콘텐츠 체험 부스를 널리 홍보하려 합니다. 선착순 100명에게 무료 에이드 사은품을 지급하는 혜택 상황을 담아, 해시태그를 포함한 카드뉴스 텍스트를 완성해줘.'
+          },
+          {
+            subId: 2,
+            title: '비건 뷰티 런칭 3대 브랜딩 전략',
+            situation: '📢 문제: 20대 여성을 겨냥한 친환경 비건 립스틱 브랜드가 신규 런칭됩니다. **"디렉터" 페르소나와 미닝아웃 환경가치 맥락을 기반으로 3대 실천 행동 플랜**을 도출할 프롬프트를 설계하세요.',
+            concept: '친환경 미닝아웃(맥락)과 브랜딩 디렉터(역할), 3가지 액션 플랜(서식)의 종합 완성도 검사입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasRole = ['디렉터', '마케터', '전문가', '디자이너'].some(k => val.includes(k));
+              const hasContext = ['비건', '친환경', '미닝아웃', '뷰티'].some(k => val.includes(k));
+              const hasTask = ['실천', '플랜', '전략', '행동'].some(k => val.includes(k));
+              return hasRole && hasContext && hasTask && val.length >= 15;
+            },
+            feedbackText: (passed) => passed ? '⚡ 비건 뷰티 브랜딩 요건 만족! 실행하세요.' : '💡 팁: "디렉터", "비건(혹은 미닝아웃)", "실천/플랜" 키워드를 조합하세요.',
+            badResponse: '🤖 [일반 AI]: 비건 립스틱은 식물성 원료로 만듭니다. 인스타그램에 사진을 올리고 홍보해 보세요.',
+            successResponse: '💄 [비건 뷰티 런칭 브랜딩 결과]\n"슬로건: 내 입술에 자연스러운 쉼표, 온전한 비건의 고집\n3대 행동 플랜:\n1. 공병 회수 캠페인 (#RecycleLip)\n2. 발색샷 업로드 시 유기견 센터 기부 연동\n3. 에코 패키징 종이 단상자 패키지 적용"',
+            answerExample: '당신은 비건 코스메틱 뷰티 브랜드 총괄 디렉터입니다. 환경 가치를 중시하는 미닝아웃 소비 트렌드에 대응하여 우리 신제품 비건 립스틱을 시장에 효과적으로 런칭하기 위한 구체적인 실천 전략을 행동 플랜 3가지로 작성해 주세요.'
+          },
+          {
+            subId: 3,
+            title: '사내 IT 보안 가이드라인 축약',
+            situation: '📢 문제: 복잡한 50페이지 사내 IT 보안 운영 지침서가 배포되었습니다. 임직원들이 쉽게 지키게 하기 위해 **"보안" 최고책임자(CISO) 지위로 위반 사례 대조 "표"와 FAQ 5선**을 명확히 요약하라는 프롬프트를 설계하세요.',
+            concept: '보안책임자(역할)와 표 및 FAQ 5선(출력 포맷)을 강제하는 프롬프트 조립의 마침표 단계입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasRole = ['보안', 'CISO', '책임자', '담당자'].some(k => val.includes(k));
+              const hasFormat = ['표', 'Table', '테이블', 'FAQ', 'Q&A'].some(k => val.includes(k));
+              return hasRole && hasFormat && val.length >= 15;
+            },
+            feedbackText: (passed) => passed ? '⚡ 최종 보안 가이드라인 요건 완료! 실행해 보세요.' : '💡 팁: "보안(CISO)", "표(혹은 테이블)", "FAQ(혹은 Q&A)" 단어가 들어가야 합니다.',
+            badResponse: '🤖 [일반 AI]: 임직원 여러분 컴퓨터 비밀번호를 자주 변경하고 악성코드가 유입되지 않게 이메일을 조심하세요.',
+            successResponse: '🛡️ [CISO 보안 가이드 요약 결과]\n"| 위반 행위 | 위험 요소 | 권장 행동 |\n| :--- | :--- | :--- |\n| 포스트잇에 비밀번호 기재 | 권한 도용 | 모바일 2차 OTP 의무화 |\n| 출처 불분명 메일 오픈 | 랜섬웨어 감염 | 백신 감시 켜기 |\n\n임직원 FAQ 5선:\nQ1. 재택망 접속은 어떻게 하나요? -> VPN 사용이 의무입니다..."',
+            answerExample: '당신은 회사 IT 인프라를 수호하는 최고정보보호책임자(CISO)입니다. 지루한 보안 규정 지침서 내용을 임직원 교육용 매뉴얼로 요약하고자 합니다. 보안 위반 사례와 올바른 대처법을 비교할 수 있는 표(Table) 서식과 함께 자주 묻는 질문 FAQ 5선을 일목요연하게 작성해 주세요.'
+          }
+        ],
+
+        quizQuestion: '이번 1주차 과정에서 배운 프롬프트 엔지니어링의 정수를 가장 완벽히 요약한 행동 수칙은 무엇인가요?',
+        quizOptions: [
+          '인공지능에게 질문을 짧고 모호하게 대충 던진다.',
+          '역할(Persona)을 주고, 대상 독자(Context)를 좁히고, 상황적 요구를 구체화하여, 출력 형태(Format)를 강제해 지시한다.',
+          '무조건 영어 번역기를 돌려 질문한다.',
+          '점수 채점 바가 없으면 프롬프트를 짤 수 없다.'
+        ],
+        quizAnswerIdx: 1,
+        quizExplain: '정답은 **역할을 주고, 대상 독자를 좁히고, 상황적 요구를 구체화하여, 출력 형태를 강제해 지시하는 것**입니다. 이것이 바로 현업에서 통용되는 프롬프트 엔지니어링의 황금 공식입니다.'
+      }
+    ];
+
+    /* ===================== 프롬프트 플레이북 데이터 =====================
+       (원문 PDF: AI 프롬프트 플레이북 - AI Innovation Studio)
+       각 챕터는 body(본문 마크다운), callouts(복사용 프롬프트 블록),
+       skeleton(인터랙티브 프롬프트 빌더), checklist(체크리스트),
+       exercises(자유 작성 실습) 를 갖는다.                          */
+    const PLAYBOOK_CHAPTERS = [
+      {
+        id: 'intro',
+        num: '00',
+        title: '시작 · 다섯 가지 원칙',
+        kicker: 'PLAYBOOK · 들어가며',
+        desc: '본격적인 프롬프트에 들어가기 전 짧은 준비운동. 나머지를 전부 수월하게 만들어 주는 다섯 가지 원칙.',
+        body: `### 왜 한국어 프롬프트인가
+
+영어 프롬프트를 번역해 쓰면 어색한 번역투 문장이 돌아옵니다. 존댓말과 반말, 보고 라인의 격식, 두괄식 보고서 — 한국에서 일하는 사람에게만 있는 변수가 있습니다. 그 변수를 어떻게 지정하느냐가 결과의 절반입니다.
+
+### 아홉 개의 분야
+
+각 장은 독립적입니다. 필요한 장부터 펼치세요.
+
+- **01 프롬프트의 뼈대** — 좋은 요청을 이루는 다섯 가지 요소와, 한국어라서 더 챙겨야 할 세 가지.
+- **02 업무 문서** — 보고서, 이메일, 회의록, 기안 — 조직에서 매일 쓰는 문서들.
+- **03 기획과 전략** — 기획서, 시장조사, 아이디어 발산과 수렴, 비판자 세우기.
+- **04 개발과 바이브코딩** — 코드를 몰라도 말로 만드는 법과 에이전트 다루는 요령.
+- **05 마케팅과 콘텐츠** — 채널별 톤, 첫 문장 뽑기, 상세페이지와 뉴스레터.
+- **06 데이터와 분석** — 표 정리, 수식, 리서치 요약, 그리고 환각을 막는 법.
+- **07 나만의 문체** — AI 티가 나는 한국어의 정체와, 내 문체를 파일로 굳히는 법.
+- **08 두 번째 뇌** — 나를 기억하는 로컬 폴더 하나 만들기.
+- **09 도구 지도와 용어집** — 무엇을 언제 쓰는지, 모르는 말이 나올 때 펴는 곳.
+
+> 급한 것부터 펼치세요. 보고서가 밀렸다면 2장, 뭔가 만들어 보고 싶다면 4장, 결과물이 죄다 AI 티가 난다면 7장입니다.
+
+### 다섯 가지 원칙
+
+나머지 전부가 이 다섯 가지 위에 서 있습니다. 머리에 넣어 두면 어떤 도구를 쓰든 수월해집니다.
+
+**원칙 1 · 맥락이 8할이다**
+모델은 마음을 읽지 못합니다. 내가 누구인지, 무슨 상황인지, 누가 읽을 문서인지를 넣어 준 만큼 정확해집니다. 결과가 나쁠 때 십중팔구는 모델이 아니라 넣어 준 정보가 부족한 것입니다. **어떤 모델을 쓰느냐는 그다음 문제입니다.**
+
+**원칙 2 · 한 번에 나오지 않는다**
+큰 결과물은 한 번의 요청으로 태어나지 않습니다. 초안을 받고, 고칠 곳을 말하고, 다시 받습니다. 이 왕복을 전제로 시작하면 첫 결과가 부족해도 흔들리지 않습니다. 처음부터 완벽을 노리는 요청이 오히려 더 오래 걸립니다.
+
+**원칙 3 · 똑똑한 신입처럼 대하라**
+빠르고 성실하지만 가끔 아주 자신 있게 틀립니다. 숫자, 법령, 인용, 고유명사처럼 **틀리면 손해가 큰 것은 반드시 확인**하세요. 반복 작업은 맡기고, 판단은 내가 합니다.
+
+**원칙 4 · 되돌릴 수 있다**
+되돌리기, 파일 복사, 새 대화창은 언제나 옆에 있습니다. 잘못 눌러 큰일 나는 일은 거의 없습니다. 눌러 보고, 시켜 보고, "이렇게 하면 어떻게 되냐"고 물어보세요. 두려움이 실수보다 훨씬 많이 발목을 잡습니다.
+
+**원칙 5 · 작게 시작하라**
+처음부터 시스템을 세우려 들지 마세요. 이번 주에 실제로 해야 하는 일 하나를 골라 끝까지 가 보세요. 진짜로 써먹은 작은 결과 하나가, AI 활용법을 한 달 읽는 것보다 많이 남깁니다.
+
+> 여기서부터는 전부 실전입니다. 각 장 끝에는 체크리스트가 있습니다. 다 외울 필요는 없고, 시작하기 전에 한 번 훑어보는 용도입니다.`,
+        callouts: [],
+        checklist: [
+          '결과가 나쁘면 모델 탓하기 전에 맥락부터 다시 본다',
+          '한 번에 완벽을 노리지 않고 왕복을 전제로 시작한다',
+          '숫자·법령·인용·고유명사는 반드시 눈으로 확인한다',
+          '되돌릴 수 있으니 두려워하지 않고 시도한다',
+          '이번 주에 실제로 처리할 일 하나를 골라 끝까지 간다'
+        ]
+      },
+      {
+        id: 'ch1',
+        num: '01',
+        title: '프롬프트의 뼈대',
+        kicker: 'PLAYBOOK · 1장',
+        desc: '같은 내용을 물어도 누구는 못 쓸 답, 누구는 바로 쓸 초안을 받습니다. 비결은 모델이 아니라 요청하는 사람의 습관 몇 개에 있습니다.',
+        body: `### 좋은 요청을 이루는 다섯 가지
+
+프롬프트 엔지니어링은 실제보다 무섭게 들립니다. 요령은 하나뿐입니다. **분명하게 설명할수록 답이 좋아진다.** 비밀 주문은 없습니다. 쓸 만한 요청은 거의 언제나 다섯 가지로 이루어져 있고, 많이 채울수록 정확해집니다.
+
+1. **맥락** — 나는 누구고, 어떤 상황이며, 누가 읽는가.
+2. **역할** — 너는 편집자 / 변호사 / 분석가다.
+3. **과제** — 무엇을 해 달라는 것인가 (동사로).
+4. **형식** — 표 / 5개 불릿 / 500자 / 개조식.
+5. **기준** — 무엇을 좋은 답으로 칠 것인가.
+
+### 한국어라서 더 챙길 것
+
+영어 프롬프트를 그대로 옮기면 늘 뭔가 어색합니다. 한국어에는 영어에 없는 결정 지점이 셋 있고, 이걸 비워 두면 모델이 알아서 **가장 무난한 것**을 고릅니다. 그 무난함이 어색함의 정체입니다.
+
+1. **말투** — 존댓말 / 반말 / 개조식(~함, ~임).
+2. **독자** — 팀장 / 대표 / 고객 / 불특정 다수.
+3. **격식** — 사내 보고 / 외부 제안 / SNS.
+
+세 개를 한 줄로 붙여 쓰면 됩니다. **"팀장에게 올리는 사내 보고, 개조식, 존댓말"** — 이 한 줄이 문장 전체의 결을 바꿉니다.
+
+### 말투 지정표
+
+| 상황 | 지정 문구 |
+|---|---|
+| 상급자 보고 | 개조식(~함/~임), 존댓말, 두괄식 |
+| 동료 공유 | 평서형 존댓말, 문장 짧게 |
+| 외부 제안서 | 격식체, 주어 생략 최소화 |
+| 고객 안내 | 친절체, 전문용어는 괄호 풀이 |
+| SNS 게시물 | 구어체 반말, 문장 15자 내외 |
+| 카톡·슬랙 | 한 문단 3줄 이하, 이모지 없음 |
+
+> 가장 자주 빠뜨리는 것이 **독자**입니다. 같은 내용이라도 대표에게 올릴 때와 고객에게 보낼 때 남겨야 할 정보가 완전히 다릅니다.
+
+### 바꾸면 달라지는 것
+
+왼쪽처럼 쓰면 틀린 것은 아닙니다. 다만 왼쪽으로 물으면 돌아온 결과를 고치는 데 시간이 더 듭니다.
+
+| 이렇게 쓰면 | 이렇게 바꾼다 |
+|---|---|
+| 보고서 좀 써 줘 | 팀장 주간보고용, 개조식, A4 한 장 |
+| 이거 요약해 줘 | 핵심 5줄 + 결정이 필요한 항목만 분리 |
+| 좋은 카피 만들어 줘 | 2030 여성 대상, 15자 이내로 10개 |
+| 코드 짜 줘 | Python, 입력은 CSV, 실패 시 로그 남기게 |
+| 더 자연스럽게 고쳐 줘 | 번역투 제거·문장 길이 절반·예시 유지 |
+
+### 되묻게 만들어라
+
+다시 만드는 수고를 가장 손쉽게 더는 방법입니다. 긴 요청 끝에 이 문장을 붙이세요. 모델이 넘겨짚기를 멈추고 빠진 정보를 먼저 물어봅니다. 실무에서 이 한 줄이 실수의 절반을 걷어냅니다. 특히 기획서, 제안서처럼 전제가 많은 문서에서 효과가 큽니다.
+
+### 잘 통하는 프롬프트의 습관
+
+1. **쓰레기를 넣으면 쓰레기가 나온다.** 질문보다 먼저 깨끗한 맥락을 넣으세요. 자료가 지저분하면 결과도 지저분합니다.
+2. **단계적으로 생각하게 하라.** 계산이나 조건이 여럿 얽힌 문제는 "순서대로 따져 본 다음 결론을 말해라"만 붙여도 오답이 눈에 띄게 줄어듭니다.
+3. **첫 답을 정답으로 치지 마라.** 초안 → 지적 → 수정. 세 번째가 대체로 쓸만합니다.
+4. **길이를 숫자로 정하라.** "간단히"는 사람마다 다릅니다. "3문장", "600자", "불릿 5개"로 말하세요.
+
+### 한 번 성공하면 저장한다
+
+잘 나온 대화는 그냥 지나치지 말고 템플릿으로 만들어 두세요. 매번 달라지는 부분만 대괄호로 빼면 다음부터는 몇 초 만에 꺼내 쓸 수 있습니다.
+
+> 한 달만 모으면 나만의 프롬프트 서랍이 생깁니다. 남이 만든 프롬프트 100개보다 내가 검증한 10개가 낫습니다.
+
+### 복사해 쓰는 기본 뼈대
+
+이 뼈대는 2장부터 9장까지 모든 프롬프트의 바탕입니다. 뒤에 나오는 것들은 전부 이 틀에 분야별 살을 붙인 것입니다.
+
+### 보내기 전 점검
+
+여섯 개 중 넷만 지켜도 결과가 눈에 띄게 달라집니다. 매번 다 채울 필요는 없습니다.`,
+        callouts: [
+          {
+            title: '다섯 가지를 다 채운 예시',
+            text: `# 맥락
+30명 규모 이커머스 회사 마케팅 대리다.
+다음 주 팀장 주간회의에 올릴 보고서를 쓴다.
+
+# 역할
+너는 보고서를 많이 써 본 실무 선배다.
+
+# 과제
+아래 캠페인 결과 데이터를 두괄식 보고서로 정리해라.
+
+# 형식
+- 결론 3줄 먼저, 근거는 표 하나
+- 다음 액션 3개 (담당·기한 칸 포함)
+- A4 한 장, 개조식, 존댓말
+
+# 기준
+- 데이터에 없는 수치는 만들지 마라
+- 추측이면 [추정]이라고 표시해라
+
+# 데이터
+[여기에 붙여넣기]`
+          },
+          {
+            title: '되묻기 프롬프트 (긴 요청 끝에 붙이세요)',
+            text: `[과제를 한 문단으로 설명]
+
+시작하기 전에, 결과물의 질을 높이기 위해
+나에게 물어봐야 할 것들을 빠짐없이 물어봐라.
+질문에 내가 답하기 전에는 작업을 시작하지 마라.`
+          },
+          {
+            title: '성공한 대화 템플릿화',
+            text: `이번 대화 결과가 좋았다.
+여기서 재사용 가능한 프롬프트 템플릿을 만들어라.
+매번 바뀌는 부분은 [대괄호 변수]로 빼고,
+완성본을 코드블록 하나로 줘라.`
+          }
+        ],
+        skeleton: {
+          title: '기본 뼈대 빌더 (2장~9장의 모든 프롬프트가 이 위에 있습니다)',
+          desc: '각 칸을 채우면 아래 완성된 프롬프트가 즉시 만들어집니다. 그대로 챗봇 대화창에 붙여 넣어 쓰세요.',
+          fields: [
+            { key: 'role', label: '역할', default: '보고서를 많이 써 본 실무 선배' },
+            { key: 'reader', label: '독자', default: '팀장' },
+            { key: 'situation', label: '상황(2~3문장)', default: '30명 규모 이커머스 회사 마케팅 대리. 다음 주 주간회의 보고서.', textarea: true },
+            { key: 'task', label: '과제(동사로)', default: '아래 캠페인 결과를 두괄식 보고서로 정리해라', textarea: true },
+            { key: 'length', label: '분량', default: 'A4 한 장' },
+            { key: 'tone', label: '말투', default: '개조식(~함/~임), 존댓말' },
+            { key: 'structure', label: '구조', default: '결론 3줄 먼저 / 근거는 표 하나 / 다음 액션 3개' },
+            { key: 'guardrail', label: '지켜야 할 것', default: '- 자료에 없는 사실은 만들지 않는다\n- 불확실하면 [확인 필요]로 표시한다\n- 먼저 궁금한 점을 물어본 뒤 시작한다', textarea: true },
+            { key: 'data', label: '자료', default: '[여기에 자료 붙여넣기]', textarea: true }
+          ],
+          template: `역할: 너는 {{role}}다.
+독자: 이 결과물을 읽을 사람은 {{reader}}다.
+상황: {{situation}}
+
+과제:
+{{task}}
+
+형식:
+- 분량: {{length}}
+- 말투: {{tone}}
+- 구조: {{structure}}
+
+지켜야 할 것:
+{{guardrail}}
+
+자료:
+{{data}}`
+        },
+        checklist: [
+          '내가 누구인지, 누가 읽는지 넣었다',
+          '말투를 한 단어로 지정했다',
+          '분량을 숫자로 적었다',
+          '무엇을 좋은 답으로 칠지 적었다',
+          '지어내지 말라는 제약을 넣었다',
+          '먼저 질문하라고 시켰다'
+        ],
+        exercises: [
+          {
+            id: 'ex1-1',
+            title: '실습 · 뼈대 다섯 조각 다 채우기',
+            hint: '역할, 독자, 상황, 과제, 형식(분량 포함) — 다섯 조각이 모두 담긴 프롬프트를 한 문단으로 작성해 보세요.',
+            check: (t) => {
+              const s = t.trim();
+              const hasRole = /(전문가|선배|편집자|변호사|분석가|기획자|디자이너|개발자|마케터|카피라이터|디렉터|담당자|너는|당신은)/.test(s);
+              const hasReader = /(팀장|대표|고객|사용자|독자|학생|교수|바이어)/.test(s);
+              const hasFormat = /(글머리|불릿|표|Table|JSON|개조식|A4|줄|자|단락|문장|문단|항목)/i.test(s);
+              return s.length >= 60 && hasRole && hasReader && hasFormat;
+            },
+            good: '✅ 역할·독자·형식이 모두 담긴 완성도 높은 요청입니다. 이대로 챗봇에 붙여 넣어 결과를 받아 보세요.',
+            bad: '⚠️ 역할(누구로서), 독자(누구에게), 형식(분량/구조) 셋 중 빠진 조각이 있습니다. 다시 확인해 주세요.'
+          }
+        ]
+      },
+      {
+        id: 'ch2',
+        num: '02',
+        title: '업무 문서',
+        kicker: 'PLAYBOOK · 2장',
+        desc: '보고서, 이메일, 회의록, 기안. 매일 쓰지만 매번 시간을 잡아먹는 것들. 초안까지는 넘기고, 판단만 내가 합니다.',
+        body: `### 보고서는 두괄식으로
+
+한국 조직의 보고서는 결론이 먼저 옵니다. 그런데 그냥 시키면 배경 설명부터 길게 늘어놓는 글이 나옵니다. **구조를 순서대로 지정해 주는 것**이 핵심입니다.
+
+보고서 프롬프트에서 가장 중요한 지시는 **"결론 3줄을 맨 앞에"**와 **"자료에 없는 숫자는 만들지 마라"** 두 개입니다.
+
+### 상황별 변형
+
+| 상황 | 덧붙일 한 줄 |
+|---|---|
+| 대표 보고 | 숫자와 의사결정 항목만 남기고 과정은 지워라 |
+| 타팀 공유 | 우리 팀 내부 용어를 전부 풀어서 써라 |
+| 이슈 보고 | 문제·원인·조치·재발방지 네 칸으로 나눠라 |
+
+> 보고서에서 AI가 가장 자주 저지르는 실수는 **없는 숫자를 그럴듯하게 채우는 것**입니다. 표에 들어간 숫자는 매번 원본과 대조하세요.
+
+### 이메일과 메시지
+
+메일이 길어지는 이유는 대부분 **상대가 무엇을 해야 하는지**가 흐릿하기 때문입니다. 요청 사항과 기한을 맨 앞에 두고 나머지를 붙이면 짧아집니다.
+
+제목 앞의 대괄호 분류는 한국 업무 메일에서 열람률을 눈에 띄게 올립니다.
+
+### 곤란한 메일
+
+거절, 지연 통보, 가격 협상처럼 쓰기 껄끄러운 메일이야말로 AI가 도움이 되는 자리입니다. 감정을 빼고 사실만 남기는 일을 잘합니다.
+
+| 상황 | 지정할 톤 |
+|---|---|
+| 거절 | 사유 1개만·대안 1개 제시·사과 최소 |
+| 지연 통보 | 먼저 사과·새 일정·재발 방지 |
+| 독촉 | 비난 금지·기한과 영향만·정중히 |
+| 컴플레인 응대 | 사실 확인·조치·보상 순서 |
+
+### 카톡·슬랙 메시지
+
+메신저는 길면 안 읽힙니다. 줄 수를 숫자로 정해 주는 것이 유일한 요령입니다.
+
+### 회의록과 녹취
+
+회의록의 가치는 **누가 무엇을 언제까지**에 있습니다. 대화를 그대로 옮기면 아무도 안 읽습니다. 결정된 것과 안 된 것을 갈라 달라고 요구하세요.
+
+### 음성에서 시작하기
+
+회의는 녹음이 남으면 절반은 끝난 셈입니다. 국내 서비스로는 클로바노트·다글로가 한국어 인식이 좋고, 회의 참가형으로는 Fireflies·Otter가 있습니다.
+
+- **클로바노트** — 한국어 화자 분리, 무료 한도 넉넉
+- **다글로** — 한국어 전사, 요약 기능 포함
+- **MacWhisper** — 맥에서 로컬 처리, 외부 유출 없음
+
+> 보안이 걸리는 회의는 **로컬에서 도는 도구**를 쓰세요. 인사·계약·미공개 실적이 오간 녹취는 외부 서버에 올리지 않는 편이 안전합니다.
+
+### 긴 녹취 다루기
+
+한 시간이 넘는 녹취는 한 번에 넣지 말고 20분 단위로 나눠 요약한 뒤, 그 요약들을 다시 합치세요. 중간이 뭉개지는 현상이 줄어듭니다.
+
+### 기안·품의와 말의 온도
+
+결재를 받아야 하는 문서는 설득 문서입니다. 좋은 점만 적힌 기안은 반려됩니다. **예상 반론을 미리 적어 두는 것**이 통과율을 올립니다.
+
+### 완곡어법 다루기
+
+한국 조직 문서에는 직접 말하지 않는 관행이 있습니다. AI는 기본적으로 직설적으로 쓰므로, 필요한 만큼만 온도를 조절해 달라고 해야 합니다.
+
+| 원하는 온도 | 지정 문구 |
+|---|---|
+| 그대로 | 완곡어법 없이 사실만 직접적으로 |
+| 한 단계 | 단정 대신 "~로 판단됨" 정도로 |
+| 조심스럽게 | 가능성을 열어 두는 표현으로 |
+
+> 반대로 **과한 완곡어법을 걷어내는** 요청도 자주 씁니다. "~할 것으로 사료됨" 같은 표현을 지우고 명확하게 바꿔 달라고 하면 문서가 훨씬 읽힙니다.
+
+### 바로 쓰는 프롬프트 모음
+
+| 상황 | 한 줄 지시 |
+|---|---|
+| 요약 | 핵심 5줄 + 결정 필요 항목만 따로 |
+| 확장 | 이 개요를 각 항목 3문단으로 |
+| 톤 변경 | 같은 내용을 [대표/고객]용으로 |
+| 반박 | 이 문서의 약한 곳 5개와 보완책 |
+| 제목 | 문서 제목 후보 10개, 25자 이내 |
+| 영문화 | 실무 영문 메일로, 직역 금지 |
+
+### 업무 문서 체크리스트
+
+다섯 번째와 여섯 번째는 **건너뛰면 안 되는 항목**입니다. 나머지가 틀리면 어색하지만, 이 둘이 틀리면 사고가 납니다.`,
+        callouts: [
+          {
+            title: '주간보고 · 실적보고 프롬프트',
+            text: `너는 보고서를 많이 써 본 실무 선배다.
+아래 자료로 [팀장] 보고용 문서를 만들어라.
+
+구조를 이 순서로 고정한다:
+1. 결론 3줄 (각 줄 40자 이내)
+2. 근거 — 표 하나로
+3. 이슈와 리스크 2~3개
+4. 다음 액션 (담당 / 기한 칸 포함)
+
+개조식(~함, ~임), 존댓말, A4 한 장.
+자료에 없는 수치는 절대 쓰지 마라.
+
+[자료 붙여넣기]`
+          },
+          {
+            title: '길이 줄이기',
+            text: `이 보고서를 절반 길이로 줄여라.
+- 삭제해도 의사결정이 안 바뀌는 문장부터 지운다
+- 숫자와 고유명사는 하나도 빼지 않는다
+- 무엇을 왜 지웠는지 끝에 3줄로 알려 준다`
+          },
+          {
+            title: '이메일 프롬프트',
+            text: `아래 내용으로 업무 메일을 써라.
+
+받는 사람: [거래처 담당자 / 직급]
+관계: [처음 연락 / 진행 중 / 문제 상황]
+목적: 상대가 [무엇을 언제까지] 하게 만드는 것
+
+규칙:
+- 제목은 25자 이내, 대괄호로 분류 표시
+- 첫 문단에 요청과 기한을 먼저 쓴다
+- 본문 3문단 이내, 한 문단 3줄 이내
+- 격식체 존댓말, 과한 미사여구 금지
+
+내용: [붙여넣기]`
+          },
+          {
+            title: '슬랙·카톡 메시지 변환',
+            text: `아래를 슬랙 메시지로 바꿔라.
+- 3줄 이내, 결론 먼저
+- 이모지 쓰지 마라
+- 상대가 답할 것이 있으면 마지막에 질문 하나로`
+          },
+          {
+            title: '회의록 정리 프롬프트',
+            text: `아래는 회의 녹취록이다. 회의록으로 정리해라.
+
+이 순서로 만든다:
+1. 한 줄 요약
+2. 결정된 사항 (각 항목에 근거 한 줄)
+3. 결정되지 않은 것 — 왜 미뤄졌는지 포함
+4. 할 일: 담당 / 내용 / 기한 표
+5. 다음 회의에서 다룰 것
+
+규칙:
+- 녹취에 없는 내용은 추가하지 마라
+- 담당자가 불명확하면 [담당 미정]으로 남겨라
+- 발언자 이름은 유지, 잡담은 버려라
+
+[녹취 붙여넣기]`
+          },
+          {
+            title: '기안·품의서 프롬프트',
+            text: `[구매/채용/예산] 품의서를 작성해라.
+
+포함할 것:
+1. 요청 사항 한 줄과 금액
+2. 필요한 이유 — 현재 문제를 숫자로
+3. 대안 비교표 (최소 3개, 비용/기간/리스크)
+4. 예상 반론 3개와 그에 대한 답
+5. 승인 시 일정
+
+개조식, 존댓말, 감정 표현 없이 사실만.
+비용은 내가 준 숫자만 쓰고, 모르면 [확인 필요].`
+          },
+          {
+            title: '문서 다듬기 (완곡어법 걷어내기)',
+            text: `이 문서에서 아래를 지워라.
+- 이중 피동 (사료됨, 판단되어짐)
+- 의미 없는 수식어 (적극적으로)
+의미는 그대로, 문장만 정리해라.`
+          }
+        ],
+        skeleton: {
+          title: '보고·메일·회의록 통합 빌더',
+          desc: '문서 종류를 고르고 상황을 채우면 그에 맞는 프롬프트가 완성됩니다.',
+          fields: [
+            { key: 'doctype', label: '문서 종류', default: '주간보고' },
+            { key: 'reader', label: '받는 사람', default: '팀장' },
+            { key: 'situation', label: '이번 문서 상황', default: '이번 주 진행한 캠페인 3개의 성과 정리.', textarea: true },
+            { key: 'structure', label: '고정 구조', default: '1) 결론 3줄  2) 근거 표  3) 이슈 2개  4) 다음 액션', textarea: true },
+            { key: 'tone', label: '말투', default: '개조식(~함/~임), 존댓말' },
+            { key: 'length', label: '분량', default: 'A4 한 장' },
+            { key: 'ban', label: '금지 사항', default: '자료에 없는 수치 금지, 감정 표현 금지', textarea: true },
+            { key: 'data', label: '데이터', default: '[여기에 붙여넣기]', textarea: true }
+          ],
+          template: `[{{doctype}}] 문서를 써라.
+받는 사람: {{reader}}
+상황: {{situation}}
+
+구조:
+{{structure}}
+
+형식:
+- 말투: {{tone}}
+- 분량: {{length}}
+
+지켜야 할 것:
+{{ban}}
+
+자료:
+{{data}}`
+        },
+        checklist: [
+          '독자와 말투를 한 줄로 지정했다',
+          '결론을 맨 앞에 두라고 시켰다',
+          '분량을 숫자로 정했다',
+          '자료에 없는 숫자를 만들지 말라고 지시했다',
+          '표에 들어간 수치를 원본과 대조했다',
+          '고유명사·직급·회사명을 눈으로 확인했다'
+        ],
+        exercises: [
+          {
+            id: 'ex2-1',
+            title: '실습 · 두괄식 보고 요청 만들기',
+            hint: '독자와 상황을 지정하고, "결론 3줄 먼저 + 자료에 없는 숫자 금지" 두 지시를 포함하세요.',
+            check: (t) => t.length >= 40 && (t.includes('결론') || t.includes('먼저')) && (t.includes('자료') || t.includes('없는') || t.includes('숫자')),
+            good: '✅ 두괄식 구조와 환각 방지 지시가 모두 담겼습니다.',
+            bad: '⚠️ "결론 먼저"와 "자료에 없는 숫자 금지" 두 축을 모두 넣어야 합니다.'
+          },
+          {
+            id: 'ex2-2',
+            title: '실습 · 곤란한 메일 톤 지정',
+            hint: '거절/지연/독촉 중 하나를 골라, 톤(예: 사과 최소, 대안 1개 제시)을 명시한 메일 요청을 작성하세요.',
+            check: (t) => t.length >= 30 && /(거절|지연|독촉|사과|대안)/.test(t) && /(메일|이메일)/.test(t),
+            good: '✅ 곤란한 상황을 감정 없이 처리할 톤이 지정됐습니다.',
+            bad: '⚠️ 상황(거절/지연/독촉)과 톤(사과/대안 등)을 함께 지정하세요.'
+          }
+        ]
+      },
+      {
+        id: 'ch3',
+        num: '03',
+        title: '기획과 전략',
+        kicker: 'PLAYBOOK · 3장',
+        desc: '빈 화면 앞에서 막막한 시간을 줄이는 일. 넓게 펼칠 때와 매섭게 좁힐 때를 나누는 것이 요령입니다.',
+        body: `### 발산과 수렴을 나눠라
+
+아이디어를 내라고 하면서 동시에 현실성을 따지면 둘 다 어정쩡해집니다. **넓히는 대화와 걸러내는 대화를 분리**하세요. 대화창을 아예 다르게 여는 것이 가장 확실합니다.
+
+일부러 말이 안 되는 것을 섞으라는 지시가 중요합니다. 이게 없으면 무난한 것만 20개 나옵니다.
+
+> 마지막 줄이 은근히 쓸모가 있습니다. 기준에 안 맞아 떨어졌지만 다시 볼 만한 것을 건져 줍니다.
+
+### 기획서 뼈대 10항목
+
+사이트든 서비스든 사내 제도든, 기획서에 들어갈 항목은 크게 다르지 않습니다. 이 열 개를 채워서 건네면 **추측 대신 계획**이 돌아옵니다.
+
+1. **한 줄 정의** — 이게 무엇이고 무슨 문제를 푸는가.
+2. **목표** — 끝났을 때 무엇이 달라지는가, 측정 가능하게.
+3. **대상** — 누가 어떤 상황에서 쓰는가.
+4. **완성된 모습** — 사용자 눈으로 본 결과물.
+5. **범위** — 이번에 하는 것과 안 하는 것.
+6. **제약** — 예산, 인원, 기한, 기술적 한계.
+7. **단계** — 1차·2차·3차로 쪼갠 일정.
+8. **리스크** — 어긋날 수 있는 지점과 대비책.
+9. **측정** — 무엇을 보고 성공을 판단하는가.
+10. **질문** — 시작 전에 확인해야 할 것들.
+
+> 열 번째 항목을 꼭 넣으세요. 모델이 나에게 되묻게 만드는 칸입니다. 여기서 나온 질문 목록이 기획의 구멍을 그대로 보여 줍니다.
+
+4장의 개발 프로젝트에서도 같은 열 개를 씁니다. 만드는 대상만 다를 뿐 뼈대는 같습니다.
+
+### 시장조사와 경쟁분석
+
+조사는 AI가 가장 그럴듯하게 틀리는 분야입니다. 없는 통계와 없는 기사를 자신 있게 만들어 냅니다. **출처 없는 문장을 금지**하는 것이 유일한 방어선입니다.
+
+두 번째 칸이 유용합니다. "다들 그렇다더라"와 검증된 사실을 갈라 줍니다.
+
+### 조사에 강한 도구
+
+- **Perplexity** — 답변마다 출처 링크가 붙습니다.
+- **NotebookLM** — 내가 올린 자료 안에서만 답합니다.
+- **Claude·ChatGPT 검색** — 최신 웹을 함께 봅니다.
+
+> 내부 자료를 근거로 삼아야 할 때는 NotebookLM처럼 **업로드한 문서 밖으로 나가지 않는** 도구가 안전합니다.
+
+### 칭찬 대신 반박을 받아라
+
+모델은 기본적으로 사용자에게 우호적입니다. 기획서를 보여 주면 대체로 좋다고 합니다. 그 칭찬은 아무 정보도 주지 않습니다. **역할을 반대로 세워야** 쓸 만한 말이 나옵니다.
+
+> 마지막 줄이 핵심입니다. 좋은 점을 못 쓰게 막지 않으면 절반이 칭찬으로 채워집니다.
+
+### 세 개의 시선
+
+같은 기획서를 세 역할에게 각각 보여 주면 서로 다른 것이 걸립니다. 대화창을 나눠서 돌리세요.
+
+1. **재무 담당** — 숫자가 맞는가, 돈이 어디서 나오는가
+2. **실무자** — 이대로 하면 실제로 굴러가는가
+3. **고객** — 내가 왜 이걸 써야 하는가
+
+### 실패를 미리 가정하기
+
+실패를 기정사실로 놓고 물으면 훨씬 구체적인 위험이 나옵니다.
+
+### 기획 흐름 한 장
+
+1. 문제를 한 문장으로 적는다
+2. 발산 — 20개 흩뿌린다
+3. 수렴 — 기준으로 3개 남긴다
+4. 10항목 뼈대로 기획서를 짠다
+5. 비판자 역할로 검증한다
+6. 고쳐서 결재선에 올린다
+
+여섯 번째를 빠뜨리면 기획이 진행 중에 계속 부풀어 오릅니다. **안 하는 것을 적는 칸**이 일정을 지켜 줍니다.`,
+        callouts: [
+          {
+            title: '발산 · 넓히기 프롬프트',
+            text: `[문제 상황을 3문장으로]
+
+이 문제를 풀 방법을 20개 내라.
+규칙:
+- 현실성은 따지지 마라, 지금은 양이 목적이다
+- 서로 최대한 다른 방향으로 흩어라
+- 5개는 일부러 말이 안 되는 것을 넣어라
+- 각 아이디어는 한 줄, 설명하지 마라`
+          },
+          {
+            title: '수렴 · 걸러내기 프롬프트',
+            text: `아래 20개 중에서 고른다.
+
+기준:
+- 우리 팀 규모 [ ]명, 예산 [ ], 기간 [ ]
+- 한 달 안에 검증 가능한가
+- 실패해도 되돌릴 수 있는가
+
+방식:
+1. 세 기준으로 각 항목 점수 매겨 표로
+2. 상위 3개만 남기고 이유 설명
+3. 각각 무엇부터 하면 되는지 첫 단계 한 줄
+
+떨어뜨린 것 중 아까운 것 하나도 알려 줘라.
+
+[아이디어 목록 붙여넣기]`
+          },
+          {
+            title: '시장조사 프롬프트 (출처 강제)',
+            text: `[주제]에 대해 조사해라.
+
+절대 규칙:
+- 모든 수치 옆에 출처와 연도를 붙여라
+- 출처를 못 찾은 내용은 아예 쓰지 마라
+- "없음"이라고 답하는 것을 실패로 치지 않는다
+- 추정이면 [추정]이라고 앞에 표시해라
+
+정리 형식:
+1. 확인된 사실 (출처 있음)
+2. 업계에서 흔히 말하지만 근거를 못 찾은 것
+3. 더 알아봐야 할 것`
+          },
+          {
+            title: '경쟁사 비교표',
+            text: `아래 경쟁사들을 비교표로 만들어라.
+[회사명 3~5개]
+
+열: 가격 / 핵심기능 / 타깃 / 강점 / 약점
+- 각 칸은 15자 이내
+- 확인 못 한 칸은 "미확인"으로 남겨라
+- 표 아래에 우리가 파고들 빈틈 3개`
+          },
+          {
+            title: '반박 심사위원 프롬프트',
+            text: `너는 이 기획을 반대하는 심사위원이다.
+통과시키면 네 평판이 걸린다.
+
+아래 기획서에서:
+1. 논리적 구멍 5개
+2. 내가 유리하게만 해석한 부분 3개
+3. 숫자 중 근거가 약한 것
+4. 이 기획이 실패한다면 가장 유력한 이유 하나
+
+각 항목마다 어떻게 고치면 되는지도 붙여라.
+좋은 점은 언급하지 마라.
+
+[기획서 붙여넣기]`
+          },
+          {
+            title: '실패 사전부검 (Pre-mortem)',
+            text: `6개월 뒤 이 기획이 완전히 실패했다고 가정해라.
+그 시점에서 되돌아보며,
+왜 실패했는지 이유를 가능성 높은 순으로 7개 써라.
+지금 막을 수 있는 것에는 [예방가능] 표시.`
+          }
+        ],
+        skeleton: {
+          title: '기획서 10항목 빌더',
+          desc: '10항목을 채우면 완성된 기획서 초안 요청 프롬프트가 자동 조립됩니다.',
+          fields: [
+            { key: 'define', label: '한 줄 정의', default: '' },
+            { key: 'goal', label: '목표(측정 가능하게)', default: '', textarea: true },
+            { key: 'target', label: '대상', default: '' },
+            { key: 'result', label: '완성된 모습', default: '', textarea: true },
+            { key: 'scope', label: '범위(하는 것/안 하는 것)', default: '', textarea: true },
+            { key: 'constraint', label: '제약(예산/인원/기한)', default: '', textarea: true },
+            { key: 'phase', label: '단계(1차·2차·3차)', default: '', textarea: true },
+            { key: 'risk', label: '리스크·대비책', default: '', textarea: true },
+            { key: 'metric', label: '측정 지표', default: '' },
+            { key: 'question', label: '시작 전 확인 질문', default: '', textarea: true }
+          ],
+          template: `너는 기획을 검토하는 시니어다. 아래 10항목을 바탕으로 완성된 기획서 초안을 써라.
+
+1. 한 줄 정의: {{define}}
+2. 목표: {{goal}}
+3. 대상: {{target}}
+4. 완성된 모습: {{result}}
+5. 범위: {{scope}}
+6. 제약: {{constraint}}
+7. 단계: {{phase}}
+8. 리스크: {{risk}}
+9. 측정: {{metric}}
+10. 확인 필요 질문: {{question}}
+
+규칙:
+- 개조식·존댓말·A4 두 장
+- 자료에 없는 수치는 만들지 마라
+- 시작 전 나에게 물어야 할 것 3가지 먼저 목록으로 보여라`
+        },
+        checklist: [
+          '발산과 수렴을 다른 대화에서 했다',
+          '기획서 10항목을 다 채웠다',
+          '모델이 되물은 질문에 전부 답했다',
+          '반박 역할로 한 번 검증했다',
+          '숫자마다 출처를 확인했다',
+          '안 하는 것(범위 밖)을 명시했다'
+        ],
+        exercises: [
+          {
+            id: 'ex3-1',
+            title: '실습 · 발산 프롬프트 쓰기',
+            hint: '"20개", "다른 방향으로", "말 안 되는 것 5개 섞어라" — 세 조건을 모두 포함하세요.',
+            check: (t) => t.length >= 30 && /(20|스무)/.test(t) && /(다른|흩|다양)/.test(t) && /(말이 안|비현실|엉뚱)/.test(t),
+            good: '✅ 발산의 세 조건이 모두 담겼습니다.',
+            bad: '⚠️ 개수(20), 방향 분산, 비현실 섞기 조건이 모두 필요합니다.'
+          }
+        ]
+      },
+      {
+        id: 'ch4',
+        num: '04',
+        title: '개발과 바이브코딩',
+        kicker: 'PLAYBOOK · 4장',
+        desc: '어제까지 머릿속에만 있던 것이 오늘 저녁 링크로 열립니다. 코드를 몰라도 됩니다. 정확하게 시키는 법만 알면 됩니다.',
+        body: `### 말로 만드는 법
+
+원하는 것을 말로 설명하면 AI 에이전트가 코드를 대신 쓰는 방식입니다. 내 일은 **과제를 정확히 세우고 결과를 손보는 것**이고, 코드를 한 줄도 직접 치지 않아도 됩니다.
+
+프로그래밍을 배울 필요는 없습니다. 다만 무엇을 원하는지 분명히 말할 수 있어야 합니다. 이 장의 절반은 그 말하기에 관한 것입니다.
+
+> 한 가지 전제가 있습니다. 휴대폰으로는 어렵습니다. 대부분의 도구가 컴퓨터에 설치하는 프로그램입니다.
+
+무엇을 만들지 정하는 방법은 3장의 기획 흐름을 그대로 쓰면 됩니다. 대상만 서비스로 바뀔 뿐입니다.
+
+### 단계를 밟아 올라가기
+
+바로 터미널로 뛰어들지 마세요. 도구는 계단처럼 놓여 있고, 자기 경험에 맞는 칸에서 시작하면 됩니다.
+
+1. **캔버스형** — 브라우저 안에서 시제품을 만들고 그 자리에서 링크로 공개.
+2. **에디터형** — 컴퓨터에 프로그램을 깔고 프로젝트 폴더 단위로 작업.
+3. **터미널 에이전트** — 터미널에서 파일 전체를 맡기고 배포까지 시킴.
+
+한 칸씩 올라가세요. 첫 주에 세 번째 칸부터 시작하면 대부분 중도에 그만둡니다.
+
+### 첫 프로젝트 다섯 걸음
+
+1. **도구를 깐다.** 에디터를 보통 프로그램처럼 설치하고 계정을 만듭니다.
+2. **빈 폴더를 만든다.** 프로젝트 하나에 폴더 하나. 그 폴더를 에디터에서 엽니다.
+3. **기획 10항목을 건넨다.** 3장의 뼈대를 채워 첫 메시지로 보냅니다. "사이트 만들어 줘" 한 줄로 시작하면 그만큼의 결과가 옵니다.
+4. **중간중간 고친다.** 첫 시도에 완벽할 리 없습니다. 한 번에 한 곳씩 고쳐 달라고 하세요.
+5. **배포를 시킨다.** 어디에 올릴지 스스로 고르게 하고, 주소를 받습니다.
+
+> 세 번째가 전부입니다. 브리프의 길이가 결과물의 완성도를 거의 결정합니다.
+
+### 무엇으로 시작할까
+
+| 도구 | 성격 | 어디서 쓰나 |
+|---|---|---|
+| 캔버스형 | 프롬프트로 화면을 뽑고 즉시 공개 | 브라우저 |
+| AI 에디터 | 코드 편집기 안에 모델이 들어 있음 | PC + 클라우드 |
+| 터미널 에이전트 | 폴더 전체를 맡기는 방식 | PC · 터미널 |
+
+### 한 번에 한 가지만
+
+여러 개를 한꺼번에 시키면 어디서 망가졌는지 못 찾습니다. 초반일수록 한 번에 하나가 빠릅니다.
+
+### 규칙을 파일에 적어라
+
+에이전트는 새 대화마다 백지에서 출발합니다. 프로젝트 폴더 맨 위에 규칙 파일을 두면 매번 그것을 읽고 들어옵니다. **같은 설명을 반복하지 않아도 되는 지점**이 여기서 생깁니다. 규칙은 미리 짜는 게 아니라 내가 고친 것에서 태어납니다.
+
+### 같이 두면 좋은 파일
+
+| 파일 | 용도 |
+|---|---|
+| 규칙 파일 | 프로젝트 상시 규칙과 금지 사항 |
+| 할 일 목록 | 체크박스로 진행 상황 추적 |
+| 단계 지도 | 긴 프로젝트의 1차·2차·3차 계획 |
+| 문체 파일 | 글 말투와 금지 표현 (7장 참고) |
+
+> 규칙 파일은 **쓸수록 좋아지는 유일한 파일**입니다. 에이전트가 실수할 때마다 한 줄씩 늘려 두면, 한 달 뒤에는 같은 실수를 거의 하지 않습니다.
+
+### 먼저 계획, 그다음 코드
+
+간단한 수정은 바로 시켜도 됩니다. 하지만 세 단계가 넘는 일은 **계획을 먼저 받고 승인한 뒤 실행**시키세요. 잘못된 방향으로 30분을 달리는 일이 사라집니다.
+
+### 증거 없는 완료 금지
+
+모델은 되지도 않은 것을 됐다고 말하는 습관이 있습니다. 두 줄이 그걸 막습니다.
+
+### 일을 나눠 맡기기
+
+긴 조사나 여러 갈래의 확인 작업은 **보조 에이전트**에게 따로 떼어 주면 좋습니다. 각자 깨끗한 상태에서 시작해 결과만 돌려주므로, 본 대화가 잡동사니로 채워지지 않습니다.
+
+두 명에게 같은 파일을 동시에 맡기지 마세요. 서로의 수정을 덮어씁니다. **겹치지 않게 나누는 것**이 유일한 규칙입니다.
+
+### 초보가 빠지는 함정 여덟
+
+1. **브리프 없이 시작한다.** 거친 요청에는 거친 결과가 옵니다. 기획 10항목 먼저입니다.
+2. **계획 없이 코드부터.** 세 단계 넘는 일은 계획을 승인하고 넘어가세요.
+3. **말을 그대로 믿는다.** "완료"는 증거를 봐야 완료입니다.
+4. **쉬운 걸 어렵게 만든다.** 간단한 변경에는 간단한 해법을 요구하세요.
+5. **비밀키를 코드에 적는다.** 접속 키·비밀번호는 별도 설정 파일에 두고, 공개 저장소에 올리지 마세요.
+6. **토큰을 잊는다.** 긴 대화와 긴 답변은 그대로 비용입니다. 필요 없는 맥락은 정리하세요.
+7. **판단까지 넘긴다.** 반복 작업은 맡기고, 무엇을 만들지는 내가 정합니다.
+8. **규칙 파일이 없다.** 없으면 진척이 매번 증발합니다. 첫날부터 만드세요.
+
+> 첫 프로젝트는 어설프게 나옵니다. 그게 정상입니다. 어설픈 지점을 규칙 파일에 한 줄씩 옮겨 적으면 두 번째부터 확연히 깔끔해집니다.
+
+### 자주 쓰는 한 줄들
+
+| 상황 | 한 줄 |
+|---|---|
+| 되돌리기 | 방금 바꾼 것을 전부 되돌려라 |
+| 설명 | 이 파일이 무슨 일을 하는지 3줄로 |
+| 진단 | 왜 안 되는지 원인 후보 3개와 확인법 |
+| 정리 | 안 쓰는 코드와 파일을 찾아 목록으로 |
+| 이어받기 | 이번 대화 요약을 줘라, 다음 창에 붙인다 |
+| 점검 | 내가 놓친 위험 요소 5개를 지적해라 |
+
+> 마지막 **이어받기**가 특히 요긴합니다. 대화가 길어져 느려지면 요약을 받아 새 창 맨 앞에 붙이세요. 맥락이 살아서 넘어갑니다.`,
+        callouts: [
+          {
+            title: '규칙 파일 예시 (프로젝트 최상단에 두세요)',
+            text: `# 프로젝트 규칙
+
+## 이 프로젝트는
+동네 카페 소개 사이트.
+방문객은 지도와 영업시간만 본다.
+
+## 말투
+- 화면 문구는 존댓말, 20자 이내
+- 느낌표 쓰지 않는다
+
+## 금지
+- 보라색 계열, 이모지
+- 한 화면에 카드 3개 나열
+
+## 작업 방식
+- 3단계 넘는 일은 계획을 먼저 보인다
+- 완료 보고 전에 실제로 열어서 확인한다`
+          },
+          {
+            title: '규칙으로 굳히는 말',
+            text: `방금 그 부분이 마음에 안 든다.
+[무엇이 왜 별로였는지 한 줄]
+이걸 규칙 파일에 조항으로 추가해라.
+다음부터 자동으로 지켜지게.`
+          },
+          {
+            title: '한 번에 한 가지만',
+            text: `지금부터 한 번에 한 가지만 고친다.
+
+이번에 고칠 것: [   ]
+- 다른 파일은 건드리지 마라
+- 고치기 전에 무엇을 바꿀지 먼저 말해라
+- 내가 좋다고 하면 그때 적용해라`
+          },
+          {
+            title: '계획 먼저 프롬프트',
+            text: `이 작업은 바로 시작하지 마라.
+
+먼저:
+1. 무엇을 어떤 순서로 할지 목록으로 보여 줘라
+2. 건드릴 파일을 미리 알려 줘라
+3. 위험해 보이는 지점이 있으면 표시해라
+
+내가 "시작"이라고 하면 그때 실행해라.`
+          },
+          {
+            title: '증거 없는 완료 금지',
+            text: `"다 됐다"고 말하기 전에 반드시:
+- 실제로 실행해서 결과를 보여 줘라
+- 고치기 전과 후가 어떻게 다른지 적어라
+증거 없는 완료 보고는 받지 않는다.`
+          },
+          {
+            title: '보조 에이전트 나누는 규칙',
+            text: `1. 일을 겹치지 않게 쪼갠다
+2. 각자에게 필요한 맥락을 통째로 준다
+3. 결과를 정해진 형식으로 받는다
+4. 본 대화에서 합쳐 검토한다`
+          }
+        ],
+        skeleton: {
+          title: '프로젝트 규칙 파일 빌더',
+          desc: '내 프로젝트의 규칙 파일을 만듭니다. 완성된 텍스트를 프로젝트 폴더 맨 위에 rules.md로 저장하세요.',
+          fields: [
+            { key: 'about', label: '이 프로젝트는', default: '동네 카페 소개 사이트. 방문객은 지도와 영업시간만 본다.', textarea: true },
+            { key: 'tone', label: '말투 규칙', default: '- 화면 문구는 존댓말, 20자 이내\n- 느낌표 쓰지 않는다', textarea: true },
+            { key: 'ban', label: '금지 사항', default: '- 보라색 계열, 이모지\n- 한 화면에 카드 3개 이상 나열', textarea: true },
+            { key: 'workflow', label: '작업 방식', default: '- 3단계 넘는 일은 계획을 먼저 보인다\n- 완료 보고 전에 실제로 열어서 확인한다\n- 비밀키는 코드에 넣지 않고 별도 설정 파일에 둔다', textarea: true }
+          ],
+          template: `# 프로젝트 규칙
+
+## 이 프로젝트는
+{{about}}
+
+## 말투
+{{tone}}
+
+## 금지
+{{ban}}
+
+## 작업 방식
+{{workflow}}`
+        },
+        checklist: [
+          '프로젝트마다 폴더를 따로 만들었다',
+          '규칙 파일을 폴더 맨 위에 두었다',
+          '기획 10항목으로 첫 메시지를 썼다',
+          '3단계 넘는 일은 계획을 먼저 받았다',
+          '비밀키를 코드 안에 적지 않았다',
+          '완료 보고를 증거와 함께 받았다'
+        ]
+      },
+      {
+        id: 'ch5',
+        num: '05',
+        title: '마케팅과 콘텐츠',
+        kicker: 'PLAYBOOK · 5장',
+        desc: '채널마다 통하는 말이 다릅니다. 같은 내용을 어디에 올리느냐에 따라 문장의 길이부터 달라져야 합니다.',
+        body: `### 채널이 문장을 정한다
+
+"SNS용으로 써 줘"라고 하면 어느 SNS인지 몰라 평균값이 나옵니다. 채널을 분명히 지정하고 문장 길이까지 숫자로 주세요.
+
+### 국내 채널 톤 지정표
+
+| 채널 | 지정할 것 |
+|---|---|
+| 인스타그램 | 첫 줄로 시선 잡기·20자 내외·줄바꿈 많이 |
+| 스레드 | 구어체 반말·3~5줄·질문으로 끝 |
+| 네이버 블로그 | 소제목 다수·검색어 자연 포함·2000자 |
+| 링크드인 | 존댓말·경험담 1개 + 배움 3개 |
+| 카카오 채널 | 2줄 이내·혜택과 기한 먼저 |
+| 유튜브 설명 | 첫 3줄에 핵심·타임스탬프 목록 |
+
+> 두 번째 규칙이 중요합니다. 같은 문장을 재사용하지 말라고 하지 않으면 네 채널에 똑같은 첫 문장이 붙어 나옵니다.
+
+### 첫 줄과 카피
+
+좋은 첫 문장은 골라내는 것이지 지어내는 것이 아닙니다. 한 개를 잘 뽑아 달라고 하지 말고 **서른 개를 뽑아 고르세요.**
+
+### 카피 다듬기
+
+같은 카피를 네 방향으로 각각 3개씩 바꿔 써 달라고 하세요:
+- 더 짧게 (10자 이내)
+- 더 구체적으로 (숫자 넣어서)
+- 더 감각적으로 (장면이 그려지게)
+- 더 담백하게 (형용사 없이)
+
+### 과장을 걷어내는 요청
+
+한국어 광고 카피에는 자동으로 붙는 상투어가 있습니다. 미리 금지 목록을 주면 훨씬 담백해집니다.
+
+> "혁신적인 / 특별한 / 완벽한 / 놀라운 / 지금 바로 / 단 하나의 / 여러분을 위한 / ~의 모든 것 / 필수템 / 인생템"
+
+> 금지 목록은 색상 지정보다 강력합니다. **하지 말 것을 적는 칸**이 결과물의 성격을 가장 크게 바꿉니다.
+
+### 긴 글과 상세페이지
+
+2000자를 한 번에 시키면 물 탄 글이 나옵니다. **목차를 먼저 받아 고친 뒤 문단을 채우게** 하세요. 두 단계로 나누는 것만으로 밀도가 달라집니다.
+
+### 상세페이지 6블록
+
+상세페이지는 순서가 곧 설득입니다. 블록 순서를 지정해 주는 편이 훨씬 잘 나옵니다.
+
+1. 이 제품이 해결하는 **불편** 한 장면
+2. 해결 방식 한 줄 (기능이 아니라 결과로)
+3. 핵심 특징 3개·각 15자
+4. 숫자로 된 근거 (스펙·인증·후기 수)
+5. 자주 묻는 질문 5개
+6. 구매 결정을 막는 걱정과 그 해소
+
+> 여섯 번째 블록을 넣는 상세페이지가 드뭅니다. 교환·배송·사이즈 같은 **망설임의 이유**를 먼저 없애 주는 칸입니다.
+
+### 뉴스레터와 연속 메일
+
+제목이 절반입니다. 20개를 뽑고 그중에서 고르세요. 클릭베이트 금지 — 본문에 없는 내용을 암시하지 않게 합니다.
+
+### 연속 메일 설계
+
+한 통이 아니라 흐름을 짜야 할 때는 각 통의 **목적을 다르게** 두라고 지정하세요. 안 그러면 같은 말을 다섯 번 합니다.
+
+| 회차 | 목적 |
+|---|---|
+| 1통 | 문제를 인식시킨다 — 판매 금지 |
+| 2통 | 해결 방향을 보여 준다 |
+| 3통 | 실제 사례로 신뢰를 준다 |
+| 4통 | 걱정거리를 해소한다 |
+| 5통 | 제안과 기한 |
+
+### 콘텐츠 점검
+
+광고성 문구는 **표시광고법**의 적용을 받습니다. 최고·1위·100% 같은 표현은 근거 자료 없이 쓰지 않는 편이 안전합니다.`,
+        callouts: [
+          {
+            title: '한 번에 여러 채널로 (다시 쓰기 프롬프트)',
+            text: `아래 내용을 채널별로 각각 다시 써라.
+
+원본: [붙여넣기]
+
+만들 것:
+1. 인스타 — 첫 줄 후킹, 전체 20자×8줄
+2. 스레드 — 반말 구어체 5줄, 질문으로 마무리
+3. 블로그 도입부 — 존댓말 3문단
+4. 링크드인 — 존댓말, 경험 1개 + 배움 3개
+
+규칙:
+- 같은 문장을 그대로 재사용하지 마라
+- 채널마다 후킹 문장을 새로 지어라
+- 해시태그는 요청할 때만 붙인다`
+          },
+          {
+            title: '첫 문장 30개 프롬프트',
+            text: `[제품/글 주제]에 대한 첫 문장 30개를 써라.
+
+유형별로 나눠서:
+- 질문형 6개
+- 숫자형 6개 (구체적 수치 포함)
+- 반전형 6개 (통념을 뒤집는)
+- 상황형 6개 (독자의 순간을 묘사)
+- 선언형 6개
+
+규칙:
+- 각 20자 이내
+- 과장 광고 표현 금지
+- "여러분", "~하세요"로 시작 금지`
+          },
+          {
+            title: '카피 다듬기',
+            text: `이 카피를 아래 방향으로 각각 3개씩 바꿔 써라.
+[원본 카피]
+
+- 더 짧게 (10자 이내)
+- 더 구체적으로 (숫자 넣어서)
+- 더 감각적으로 (장면이 그려지게)
+- 더 담백하게 (형용사 없이)`
+          },
+          {
+            title: '과장 걷어내기 (금지 목록)',
+            text: `아래 표현은 쓰지 마라:
+혁신적인 / 특별한 / 완벽한 / 놀라운 /
+지금 바로 / 단 하나의 / 여러분을 위한 /
+~의 모든 것 / 필수템 / 인생템`
+          },
+          {
+            title: '블로그 · 2단계 프롬프트',
+            text: `[주제]로 블로그 글을 쓸 거다.
+
+1단계: 지금은 본문을 쓰지 마라.
+소제목만 6개 뽑아라. 각 소제목 아래
+무슨 이야기를 할지 한 줄만 적어라.
+
+내가 목차를 고친 뒤에 본문을 요청하겠다.`
+          },
+          {
+            title: '블로그 · 본문 프롬프트',
+            text: `2단계: 확정된 목차로 본문을 써라.
+
+- 소제목당 3문단, 문단당 3줄
+- 각 소제목에 구체적 예시 하나씩
+- 도입은 독자의 상황 묘사로 시작
+- 결론에 요약 반복 금지, 다음 행동 하나만`
+          },
+          {
+            title: '뉴스레터 제목 20개',
+            text: `뉴스레터 제목 후보 20개를 만들어라.
+
+- 25자 이내, 모바일 미리보기 기준
+- 절반은 호기심형, 절반은 실용형
+- 클릭베이트 금지: 본문에 없는 내용 암시 금지
+- 각 제목 옆에 예상 독자 반응 한 줄`
+          },
+          {
+            title: '뉴스레터 본문 구조',
+            text: `뉴스레터 본문을 아래 구조로 써라.
+1. 인사 없이 바로 본론 (첫 줄이 승부)
+2. 이번 호의 핵심 하나
+3. 근거나 사례 2개
+4. 오늘 해 볼 것 하나
+5. 다음 호 예고 한 줄
+
+전체 800자, 존댓말, 문단당 3줄 이내.`
+          },
+          {
+            title: '연속 메일 5통 시리즈',
+            text: `위 5통 시리즈를 써라.
+- 통마다 목적이 겹치면 안 된다
+- 1~3통에서는 구매를 권하지 마라
+- 각 통 끝에 다음 통 예고 한 줄`
+          }
+        ],
+        skeleton: {
+          title: '채널별 카피 빌더',
+          desc: '원본 내용과 채널을 지정하면 그 채널에 맞는 카피 요청 프롬프트가 만들어집니다.',
+          fields: [
+            { key: 'source', label: '원본 내용', default: '', textarea: true },
+            { key: 'channel', label: '채널', default: '인스타그램' },
+            { key: 'audience', label: '독자', default: '20~30대 여성' },
+            { key: 'length', label: '길이 지정', default: '20자×8줄' },
+            { key: 'tone', label: '톤', default: '구어체, 이모지 없이' },
+            { key: 'ban', label: '금지 표현', default: '혁신적인 / 완벽한 / 필수템', textarea: true }
+          ],
+          template: `아래 원본을 {{channel}} 게시물로 다시 써라.
+
+원본:
+{{source}}
+
+조건:
+- 독자: {{audience}}
+- 길이: {{length}}
+- 톤: {{tone}}
+- 금지 표현: {{ban}}
+- 첫 줄로 시선을 잡는다
+- 해시태그는 마지막에만`
+        },
+        checklist: [
+          '채널을 이름으로 지정했다',
+          '문장 길이를 숫자로 지정했다',
+          '금지 표현 목록을 넣었다',
+          '첫 문장을 여러 개 받아 골랐다',
+          '긴 글은 목차를 먼저 확정했다',
+          '과장 광고 표현을 눈으로 걸러냈다'
+        ]
+      },
+      {
+        id: 'ch6',
+        num: '06',
+        title: '데이터와 분석',
+        kicker: 'PLAYBOOK · 6장',
+        desc: '숫자를 다루는 일은 AI가 가장 빠르면서 동시에 가장 위험한 영역입니다. 시키는 법과 의심하는 법을 함께 익혀야 합니다.',
+        body: `### 표와 스프레드시트
+
+엑셀 수식은 AI가 잘하는 일입니다. 다만 받은 수식을 이해하지 못한 채 붙이면 나중에 고치지 못합니다. **설명을 함께 요구**하세요.
+
+마지막 줄을 넣으면 한 줄짜리 괴물 수식 대신 이해 가능한 여러 칸으로 나눠 줍니다.
+
+### 지저분한 데이터 정리
+
+실무 데이터는 늘 지저분합니다. 정리 규칙을 먼저 만들게 하고, 그다음 적용시키는 두 단계가 안전합니다.
+
+> 한국 데이터에서 가장 흔한 문제는 **주소·회사명 표기 불일치**와 날짜 형식입니다. 미리 짚어 달라고 하면 대부분 잡아냅니다.
+
+### 지어내지 못하게 막기
+
+숫자를 다룰 때 AI는 빈칸을 **그럴듯한 값으로 메우는** 습관이 있습니다. 문장이라면 어색한 정도로 끝나지만 숫자에서는 사고입니다.
+
+### 의심해야 할 신호
+
+- **지나치게 딱 떨어지는 수치** — 30%, 2배처럼 반올림된 값
+- **출처가 "일반적으로"** — 근거 없는 통념일 확률이 높습니다
+- **내가 준 적 없는 항목** — 표에 없던 열이 생겼다면 지어낸 것
+- **연도가 없는 통계** — 언제 기준인지 없으면 확인이 불가능합니다
+
+> 규칙 하나만 지키세요. **보고서에 들어갈 숫자는 눈으로 원본과 대조한다.** 이 한 줄이 나머지 모든 요령보다 중요합니다.
+
+계산이 많은 작업은 모델에게 암산시키지 말고, 계산식을 짜게 한 뒤 스프레드시트에서 돌리는 편이 정확합니다.
+
+### 자료 더미에서 결론까지
+
+보고서, 설문 응답, 상담 기록처럼 **내가 가진 자료**를 다룰 때가 가장 안전합니다. 밖으로 나가지 말라고 분명히 지시하세요.
+
+### 결론까지 밀어붙이기
+
+요약만 받으면 "그래서 뭘 해야 하나"가 남습니다. 판단을 요구하는 칸을 따로 만드세요.
+
+1. 자료를 주제별로 묶는다
+2. 묶음마다 사실만 정리한다
+3. 사실에서 나오는 해석을 적는다
+4. 해석에서 나오는 행동을 적는다
+5. 해석과 사실이 뒤섞였는지 검토한다
+
+> 세 번째와 네 번째를 반드시 **따로 적게** 하세요. 한 문단에 섞이면 어디까지가 자료고 어디부터가 추측인지 알 수 없게 됩니다.
+
+### 결과를 보여 줄 때
+
+"그래프 그려 줘"라고 하면 대개 막대그래프가 나옵니다. **무엇을 보여 주고 싶은지**를 말하면 형태가 알아서 정해집니다.
+
+| 보여 줄 것 | 적합한 형태 |
+|---|---|
+| 시간에 따른 변화 | 선그래프 |
+| 항목 간 크기 비교 | 가로 막대 |
+| 전체 중 비중 | 누적 막대 (원형은 지양) |
+| 두 값의 관계 | 산점도 |
+| 하나의 핵심 숫자 | 큰 숫자 한 개 |
+
+### 데이터베이스 다루기
+
+SQL을 몰라도 질의문을 받아 쓸 수 있습니다. 다만 **수정·삭제 문은 직접 돌리지 마세요.**
+
+> UPDATE·DELETE 같은 문장은 되돌릴 수 없습니다. 실무 데이터에서는 **읽기 전용 계정**으로만 시도하세요.
+
+### 개인정보가 섞였다면
+
+고객 명단, 상담 기록, 인사 자료에는 개인정보가 들어 있습니다. 외부 서비스에 그대로 올리면 문제가 될 수 있습니다.
+
+- **가명 처리 후 올리기** — 이름·연락처를 A, B로 치환
+- **구조만 올리기** — 실제 값 대신 열 이름과 예시 형식만
+- **로컬 도구 쓰기** — 내 컴퓨터 안에서 도는 도구 사용
+
+> 회사 계정으로 쓰는 유료 요금제는 대개 **입력 내용을 학습에 쓰지 않는다**고 명시합니다. 회사 자료를 다룬다면 개인 무료 계정이 아니라 조직 계정을 쓰세요.`,
+        callouts: [
+          {
+            title: '엑셀 수식 프롬프트',
+            text: `엑셀 수식을 만들어 달라.
+
+상황: [시트 구조를 열 이름으로 설명]
+하고 싶은 것: [   ]
+
+주의:
+- 수식과 함께 무슨 뜻인지 한 줄 설명
+- 오류가 날 수 있는 경우와 대비책
+- 구글 시트에서도 되는지 표시
+- 함수를 여러 개 겹칠 거면 단계별로 나눠 줘라`
+          },
+          {
+            title: '지저분한 데이터 정리 (두 단계)',
+            text: `아래 데이터를 정리할 거다.
+지금은 고치지 마라.
+
+먼저 알려 줘라:
+1. 발견한 문제 유형 (표기 불일치, 결측, 중복)
+2. 각각 몇 건인지
+3. 어떤 규칙으로 통일할지 제안
+4. 판단이 애매해서 나에게 물어야 할 것
+
+내가 규칙을 확정하면 그때 적용해라.
+
+[데이터 붙여넣기]`
+          },
+          {
+            title: '지어내지 못하게 막기',
+            text: `이 자료를 분석해라.
+
+절대 규칙:
+- 자료에 없는 숫자는 어떤 경우에도 쓰지 마라
+- 계산한 값은 계산 과정을 함께 보여라
+- 자료로 알 수 없는 것은 "자료에 없음"이라고 답해라
+  이렇게 답하는 것은 실패가 아니다
+- 추정치는 반드시 [추정]을 앞에 붙여라
+
+[자료]`
+          },
+          {
+            title: '검산 시키기',
+            text: `방금 낸 숫자들을 다시 검산해라.
+- 합계가 원본과 맞는지 확인
+- 비율의 합이 100%인지 확인
+- 이상하게 큰 값·작은 값이 있으면 지적
+틀린 곳이 있으면 솔직히 말해라.`
+          },
+          {
+            title: '내 문서 안에서만',
+            text: `내가 올린 문서 안에서만 답해라.
+
+- 문서에 없으면 "자료에 없습니다"라고 답해라
+- 일반 지식으로 보충하지 마라
+- 모든 답변에 어느 문서 몇 쪽인지 표시해라
+- 문서끼리 내용이 어긋나면 그 사실을 먼저 알려라`
+          },
+          {
+            title: '설문·후기 묶기',
+            text: `아래 [응답/후기]들을 주제별로 묶어라.
+
+- 비슷한 이야기를 묶고 각 묶음에 이름을 붙여라
+- 묶음마다 몇 건인지, 대표 인용 2개
+- 단 한 명만 말했지만 중요해 보이는 것 따로
+- 내 해석을 넣지 말고 응답자의 말로만`
+          },
+          {
+            title: '차트 만들기',
+            text: `이 데이터로 차트를 만들어라.
+보여 주고 싶은 것: [한 문장]
+
+- 위 목적에 맞는 형태를 네가 골라라
+- 왜 그 형태인지 한 줄 설명
+- 눈금과 단위를 반드시 표시
+- 색은 3개 이하`
+          },
+          {
+            title: 'SQL 질의문 만들기 (읽기 전용)',
+            text: `이 표 구조에서 [알고 싶은 것]을 뽑는
+SQL을 써 줘.
+
+[테이블 이름과 열 목록]
+
+- SELECT 문만 만들어라
+- 수정·삭제 문은 만들지 마라
+- 무슨 뜻인지 한글로 한 줄 설명
+- 결과가 많으면 상위 몇 개만 나오게`
+          }
+        ],
+        skeleton: {
+          title: '데이터 분석 프롬프트 빌더',
+          desc: '분석 대상과 목적을 지정하고, 환각 방지 조항을 자동으로 붙입니다.',
+          fields: [
+            { key: 'goal', label: '분석 목적', default: '이번 분기 매출 감소의 원인 후보를 뽑는다', textarea: true },
+            { key: 'source', label: '자료 종류/구조', default: '일별 매출 CSV: 날짜, 채널, 매출, 주문수', textarea: true },
+            { key: 'ask', label: '결과로 받고 싶은 것', default: '- 눈에 띄는 이상 지점 3개\n- 각 지점의 가능한 원인 2개\n- 추가로 봐야 할 데이터 목록', textarea: true },
+            { key: 'guard', label: '환각 방지 조항', default: '- 자료에 없는 숫자 금지\n- 계산 과정 함께 표시\n- 추정은 [추정] 표시\n- 해석과 사실을 문단으로 분리', textarea: true }
+          ],
+          template: `아래 자료를 분석해라.
+
+목적: {{goal}}
+
+자료 구조: {{source}}
+
+결과로 받고 싶은 것:
+{{ask}}
+
+절대 규칙:
+{{guard}}
+
+[자료 붙여넣기]`
+        },
+        checklist: [
+          '자료에 없는 숫자 금지를 명시했다',
+          '계산 과정을 함께 받았다',
+          '합계·비율을 검산시켰다',
+          '보고서에 들어갈 수치를 원본과 대조했다',
+          '해석과 사실을 분리해서 받았다',
+          '수정·삭제 질의문은 직접 돌리지 않았다'
+        ]
+      },
+      {
+        id: 'ch7',
+        num: '07',
+        title: '나만의 문체 만들기',
+        kicker: 'PLAYBOOK · 7장',
+        desc: '왜 AI가 쓴 글은 한눈에 티가 날까. 정체를 알면 지울 수 있고, 지운 자리에 내 문체를 채울 수 있습니다.',
+        body: `### AI가 쓴 한국어의 정체
+
+AI가 쓴 글은 두 문단이면 알아봅니다. 흔히 "영혼이 없다"고 하는데, 아름답지만 쓸모없는 설명입니다. 실제로는 **습관 몇 개가 반복되는 것**이고, 그 목록은 유한합니다. 유한하다면 금지 목록으로 만들어 넘길 수 있습니다.
+
+### 반복되는 열두 가지
+
+- **이중 피동** — 되어집니다, 보여집니다, 사료됩니다
+- **과잉 명사화** — ~에 대한 검토를 진행, ~을 통하여
+- **셋으로 나누기** — 무엇이든 항상 세 가지로 정리
+- **대조 구문** — 단순한 A가 아니라 B입니다
+- **공허한 수식** — 혁신적인, 다양한, 효과적인
+- **요약의 반복** — 다 말하고 끝에 또 요약
+- **선언형 마무리** — 결국 중요한 것은 ~입니다
+- **이모지 소제목** — 항목마다 앞에 아이콘
+- **독자 호명** — 여러분, ~해 보시기 바랍니다
+- **균질한 문장 길이** — 전부 비슷하게 긴 문장
+- **안전한 양비론** — 물론 ~한 측면도 있습니다
+- **번역투 접속** — 또한, 나아가, 뿐만 아니라
+
+> 하나하나는 사람도 씁니다. AI 티를 만드는 건 **밀도**입니다. 열두 개가 고르게, 빈틈없이 깔려 있을 때 글이 기계 같아집니다.
+
+### 목록을 그대로 넘긴다
+
+열두 개를 문장으로 설명하려 들지 마세요. **그대로 금지 목록으로 붙여 넣으면** 됩니다. 판정이 기계적으로 되는 항목일수록 잘 지켜집니다.
+
+7장의 목표는 이 열두 개를 지우는 것이 아니라, 지운 자리에 내 습관을 채워 넣는 것입니다.
+
+### 내 문체를 뽑아내기
+
+금지 목록만 적용해 보면 재밌는 일이 벌어집니다. 상투어는 사라지는데 **글에서 사람도 같이 사라집니다.** 밋밋한 무색 문장이 남습니다. 여기가 출발점입니다.
+
+내가 쓴 글 열다섯에서 서른 편을 모으세요. 게시물, 고객에게 보낸 메일, 업무 메시지, 음성 녹취 전사본. **남이 손본 글과 스스로 별로라고 생각하는 글은 빼세요.**
+
+### 관찰만 시키기
+
+마지막 규칙이 전부입니다. 이걸 빼면 **칭찬만 잔뜩** 돌아오고, 거기서는 규칙을 한 줄도 못 뽑습니다.
+
+### 문체를 파일로 굳히기
+
+관찰 결과를 파일 하나에 옮겨 적습니다. 코드는 한 줄도 필요 없고, 그냥 텍스트 파일입니다. 대화 시작할 때 붙여 넣거나, 프로젝트 폴더에 두고 읽게 하면 됩니다.
+
+1. **금지** — 내 글에 절대 없는 것 — 기계적 판정 가능하게
+2. **허용** — 내가 즐겨 쓰는 것 — 이게 없으면 밋밋해짐
+3. **본보기** — 내 글 3~4편 통째로 — 가장 강력한 칸
+
+> 세 번째 칸이 나머지 둘을 합친 것보다 셉니다. 내 문단 하나가 **"더 생동감 있게"라는 주문 백 마디보다 정확**합니다.
+
+### 피드백을 자산으로
+
+결과물이 마음에 안 들 때 대화창에서 "좀 더 자연스럽게"라고 말하면 그 순간만 고쳐집니다. 내일 새 대화에서 똑같이 설명해야 합니다. **고칠 때마다 파일에 한 줄씩 옮겨 적으세요.**
+
+| 그 자리에서 끝나는 말 | 파일에 남는 말 |
+|---|---|
+| 뭔가 좀 딱딱한데 | 도입부 인사말 빼고 사례로 시작 |
+| 이건 내 스타일 아냐 | 한 문단에 3줄 넘기지 않기 |
+| 이번엔 너무 과했어 | "솔루션" 대신 "방법" 쓰기 |
+| 좀 더 자연스럽게 | 이 규칙을 문체 파일에 추가해라 |
+
+오른쪽처럼 **검증 가능한 문장**으로 바꿔 적어야 내일도 작동합니다. 평가는 파일에 적을 것이 없습니다.
+
+### 스스로 검토는 못 한다
+
+같은 대화에서 자기 글을 비판하라고 하면 대체로 괜찮다고 합니다. 검토는 **새 대화**에서, 문체 파일만 함께 넣어 시키세요.
+
+> 보통 다섯에서 열 번 정도 이 왕복을 돌면 파일이 안정됩니다. 그다음부터는 초안이 처음부터 내 말투로 나옵니다.
+
+### 문체 만들기 흐름
+
+1. 금지 목록으로 상투어를 지운다
+2. 내 글 15~30편을 모은다
+3. 관찰만 시켜 특징을 뽑는다
+4. 금지·허용·본보기 세 칸으로 적는다
+5. 새 대화에서 검사시킨다
+6. 고칠 때마다 파일에 한 줄 추가
+
+> 이 파일은 글에만 쓰는 게 아닙니다. 사이트 문구, 발표 자료, 뉴스레터에 같은 파일을 함께 쓰면 **흩어져 있던 결과물의 목소리가 하나로 모입니다.**`,
+        callouts: [
+          {
+            title: '상투어 지우기 프롬프트',
+            text: `아래 글에서 다음을 전부 지워라.
+- 이중 피동 (되어집니다, 보여집니다)
+- 공허한 수식어 (혁신적인, 다양한, 효과적인)
+- 마지막 요약 문단
+- 이모지, 독자 호명
+
+의미는 그대로 두고 문장만 바꿔라.
+
+[내 글 붙여넣기]`
+          },
+          {
+            title: '관찰만 시키는 프롬프트',
+            text: `아래 글들은 전부 내가 쓴 것이다.
+내 문체를 분석해라.
+
+봐야 할 것:
+- 문장 길이와 리듬
+- 문단을 어떻게 시작하는가
+- 자주 쓰는 접속과 어미
+- 즐겨 쓰는 단어, 절대 안 쓰는 단어
+- 존댓말과 반말 사이 어디쯤인가
+- 예시를 드는 방식
+
+규칙:
+- 평가하지 마라. 관찰만 해라
+- 모든 관찰에 내 글에서 뽑은 인용을 붙여라
+- "좋다", "생동감 있다" 같은 말 금지
+
+[글 15~30편 붙여넣기]`
+          },
+          {
+            title: '문체 파일 예시',
+            text: `# 내 문체
+
+## 절대 쓰지 않는 것
+- 이중 피동 (되어집니다, 보여집니다)
+- 이모지
+- "여러분", "~해 보시기 바랍니다"
+- 마지막 요약 문단
+- 세 개로 나눠 정리하는 습관
+- 느낌표
+
+## 자주 쓰는 것
+- 짧은 문장과 긴 문장을 번갈아
+- 문단을 사례로 시작
+- 구어체 접속: 그런데, 그래서, 다만
+- 단정적 마무리, 여지 남기지 않음
+- 숫자를 자주 씀
+
+## 본보기
+[내가 쓴 글 3~4편 전문]`
+          },
+          {
+            title: '문체 검사 프롬프트 (새 대화에서)',
+            text: `너는 문체 검사기다.
+아래 문체 규칙을 기준으로 글을 검사해라.
+
+[문체 파일 붙여넣기]
+
+검사 방식:
+- 규칙 위반을 전부 찾아 인용과 함께 지적
+- 위반이 아니지만 어색한 곳도 표시
+- 고친 문장을 제안하되 원문도 남겨라
+- 잘 쓴 부분은 언급하지 마라
+
+[검사할 글]`
+          }
+        ],
+        skeleton: {
+          title: '내 문체 파일 빌더',
+          desc: '세 칸을 채우면 대화창에 붙여 넣을 문체 파일이 완성됩니다. rules-style.md로 저장해서 프로젝트 폴더에 두면 좋습니다.',
+          fields: [
+            { key: 'ban', label: '금지 (내 글에 없는 것)', default: '- 이중 피동 (되어집니다, 보여집니다)\n- 이모지\n- "여러분", "~해 보시기 바랍니다"\n- 마지막 요약 문단\n- 세 개로 나눠 정리하는 습관\n- 느낌표', textarea: true },
+            { key: 'allow', label: '허용 (내가 즐겨 쓰는 것)', default: '- 짧은 문장과 긴 문장을 번갈아\n- 문단을 사례로 시작\n- 구어체 접속: 그런데, 그래서, 다만\n- 단정적 마무리, 여지 남기지 않음\n- 숫자를 자주 씀', textarea: true },
+            { key: 'sample', label: '본보기 (내 글 3~4편 전문)', default: '[여기에 내가 쓴 글 3~4편을 통째로 붙여 넣기]', textarea: true }
+          ],
+          template: `# 내 문체
+
+## 절대 쓰지 않는 것
+{{ban}}
+
+## 자주 쓰는 것
+{{allow}}
+
+## 본보기
+{{sample}}`
+        },
+        checklist: [
+          '평가 말고 관찰만 하라고 지시했다',
+          '관찰마다 인용을 붙이게 했다',
+          '금지 칸을 기계적 판정 가능하게 썼다',
+          '본보기로 내 글 전문을 넣었다',
+          '검사는 새 대화에서 했다',
+          '피드백을 파일에 옮겨 적었다'
+        ]
+      },
+      {
+        id: 'ch8',
+        num: '08',
+        title: '두 번째 뇌',
+        kicker: 'PLAYBOOK · 8장',
+        desc: '조언을 구하면 일반론이 아니라 내 고객과 내 결정을 아는 대답이 돌아옵니다. 그 기억이 사는 곳은 내 노트북의 폴더 하나입니다.',
+        body: `### 폴더 하나가 하는 일
+
+두 번째 뇌는 내 컴퓨터에 있는 **텍스트 파일 폴더**입니다. 데이터베이스도, 별도 서비스 가입도, 클라우드도 필요 없습니다. AI 에디터가 그 폴더를 통째로 읽고 대답합니다.
+
+그냥 챗봇과 무엇이 다르냐면 **맥락이 이어진다**는 점입니다. 새 대화를 열 때마다 내가 누구인지 설명할 필요가 없습니다. 폴더가 기억하고 있으니까요. 시간이 지날수록 조수가 아니라 사정을 아는 동료에 가까워집니다.
+
+> 마법은 바로 오지 않습니다. 첫 달은 평범한 챗봇과 비슷합니다. 쌓인 것이 적어서입니다. 한 달쯤 지나 노트와 규칙이 모이면 그때 차이가 보입니다.
+
+### 네 부분으로 되어 있다
+
+| 부분 | 무엇인가 | 안에 드는 것 |
+|---|---|---|
+| 저장소 | 분야별 텍스트 파일 폴더 | 메모, 회의록, 고객, 목표 |
+| 규칙 | 대화 시작마다 읽히는 파일 | 폴더 지도, 말투, 금지 |
+| 역할 | 전문가 설정 모음 | 검토자, 기획자, 비판자 |
+| 창구 | 접근 통로 | 에디터, 메신저 봇 |
+
+필요한 것은 AI 에디터 하나와 빈 폴더 하나입니다. 준비 시간은 두 시간 남짓입니다.
+
+### 폴더는 번호로 나눈다
+
+폴더를 이름순으로만 두면 금세 뒤엉킵니다. 십의 자리로 분야를 나누고 그 안에서 세부를 매기면, 나중에 무엇을 끼워 넣어도 자리가 있습니다.
+
+빈 번호를 남겨 두는 것이 핵심입니다. 50, 60, 70은 나중을 위해 비워 둡니다.
+
+### 규칙 파일이 지도다
+
+폴더 맨 위에 두는 규칙 파일이 이 시스템에서 가장 중요합니다. 어디에 무엇이 있는지, 새로 생긴 파일은 어디로 보낼지를 적어 둡니다.
+
+> 파일 이름 앞에 날짜를 붙이면 **시간 순서가 공짜로 생깁니다.** 나중에 "작년 이맘때 뭐 했지"를 물을 수 있게 됩니다.
+
+### 여덟 걸음으로 만들기
+
+1. **분야를 한두 개만 고른다.** 전부 담으려 하지 마세요. 반복이 가장 심한 곳 하나가 첫 폴더입니다.
+2. **인터뷰로 나를 기록한다.** 기억 기능이 있는 챗봇에서 50문답을 돌려 내 프로필 문서를 만듭니다.
+3. **로컬 폴더를 만든다.** AI 에디터를 깔고 빈 폴더를 엽니다. 클라우드 동기화 폴더 말고 로컬이어야 합니다.
+4. **뼈대를 짓게 한다.** 다음 쪽의 프롬프트로 폴더와 규칙 파일을 만들게 합니다.
+5. **백업을 건다.** 비공개 저장소에 복사본을 둡니다. 에이전트에게는 읽기 권한만 줍니다.
+6. **진짜 자료를 넣는다.** 첫 분야에만. 회의록, 문서, 메모를 실제로 채웁니다.
+7. **대화를 해 본다.** 실제 업무 하나를 이 폴더 안에서 처리해 봅니다.
+8. **고칠 때마다 규칙에 적는다.** 이게 시스템을 키우는 유일한 방법입니다.
+
+순서가 있습니다. 1~4는 뼈대, 5~6은 기반, 7~8은 채우기입니다. **네 번째의 구조 잡기를 건너뛰면 나중에 전부 다시 해야 합니다.**
+
+> 한 분야를 한두 주 써 보고 다음 분야로 넘어가세요. 한꺼번에 다 채우면 대부분 방치됩니다.
+
+### 시작을 여는 두 프롬프트
+
+첫째는 뼈대 만들기. 빈 폴더를 연 상태에서 에디터에 그대로 붙여 넣습니다. 둘째는 50문답 인터뷰. 내 대화가 가장 많이 쌓인 챗봇에서 돌립니다.
+
+음성으로 답하면 훨씬 수월합니다. 타이핑보다 빠르고 말투가 그대로 남습니다.
+
+### 역할은 필요할 때 태어난다
+
+전문가 역할을 스무 개 만들어 두는 것은 시간 낭비입니다. 대부분 한 번도 안 씁니다. **같은 요청을 세 번째 하고 있다면** 그때 역할로 만드세요.
+
+| 역할 | 하는 일 |
+|---|---|
+| 검토자 | 문서의 빈틈과 어긋난 곳만 지적 |
+| 비판자 | 반대 논리를 세워 논거를 시험 |
+| 정리자 | 흩어진 메모를 주제별로 묶음 |
+| 기록자 | 회의록을 정해진 형식으로 변환 |
+| 회고자 | 지난 기록과 지금을 비교해 변화 추적 |
+
+> 가장 쓸모 있는 역할은 **회고자**입니다. 한 시점의 기록은 별 의미가 없지만, 폴더에 반년치가 쌓이면 나 혼자서는 못 보던 흐름을 짚어 줍니다.
+
+### 원칙
+
+- **작게 시작한다.** 한 분야를 한두 주 써 보고 다음으로.
+- **시간을 준다.** 첫 몇 주는 티가 안 납니다. 한 달이 분기점입니다.
+- **한 프로젝트 한 폴더.** 여러 곳에 쪼개면 연결을 못 찾습니다.
+- **백업은 읽기 전용으로.** 에이전트에게 쓰기 권한은 주지 않습니다.
+- **고칠 때마다 규칙에 적는다.** 이게 유일한 성장 방법입니다.
+
+> 개인정보와 회사 기밀이 한 폴더에 섞입니다. 어떤 모델을 쓸지는 6장 마지막 쪽의 기준을 참고하세요.`,
+        callouts: [
+          {
+            title: '뼈대 만들기 프롬프트 (빈 폴더에서)',
+            text: `이 폴더에 내 두 번째 뇌를 만들 거다.
+내 일과 삶의 맥락이 쌓이는 로컬 저장소다.
+
+먼저 나에게 질문부터 해라. 한 번에 3~5개씩:
+- 지금 우선순위인 일과 프로젝트는 무엇인지
+- 어떤 작업을 너에게 넘기고 싶은지
+- 이미 쌓아 둔 자료가 어디에 있는지
+- 정기적으로 일하는 사람들은 누구인지
+
+내 답을 다 들은 뒤에:
+1. 십의 자리 번호로 폴더 구조를 제안해라
+2. 확정되면 실제로 폴더를 만들어라
+3. 각 폴더에 안내 파일을 하나씩 둬라
+4. 맨 위에 규칙 파일을 만들어라
+5. 역할 폴더도 만들어 둬라
+
+내용은 내가 채운다. 너는 뼈대와 길만 만들어라.`
+          },
+          {
+            title: '50문답 인터뷰 프롬프트',
+            text: `지금까지 나와 나눈 대화 전체를 살펴봐라.
+거기서 보이는 내 패턴, 관심사, 일하는 방식,
+목표, 말투, 중요하게 여기는 것을 정리할 거다.
+실제로 기억에 있는 것만 써라. 지어내지 마라.
+
+나에 대해 알아야 할 것을 묻는
+50개짜리 인터뷰를 만들어라.
+
+방식:
+- 한 번에 5개씩 묻고 내 답을 기다려라
+- 뻔한 질문 말고 이미 아는 것에서 더 파고들어라
+- 같은 것을 두 번 묻지 마라
+
+50개가 다 끝나면 나에 대한 문서를 만들어라.
+성향, 하는 일, 가치관, 말투, 하는 것과 안 하는 것.
+따로 한 덩어리로 줘라. 내가 파일로 저장하겠다.`
+          },
+          {
+            title: '폴더 규칙 파일 예시',
+            text: `# 이 폴더의 규칙
+
+## 어디에 무엇이
+- 회의록 → 23_회의록/YYYY-MM-DD_상대.md
+- 고객 정보 → 22_고객/회사명.md
+- 아이디어 → 30_지식/inbox.md
+
+## 대답 방식
+- 존댓말, 결론 먼저
+- 폴더에 없는 내용은 "자료 없음"이라고 답한다
+- 사실과 추측을 반드시 구분해서 표시한다
+
+## 파일 이름
+- 날짜는 항상 YYYY-MM-DD로 앞에 붙인다`
+          },
+          {
+            title: '역할 파일 프롬프트',
+            text: `앞으로 이 대화에서 너는 내 [   ]다.
+
+이런 것을 본다: [   ]
+이렇게 말한다: [   ]
+이건 하지 않는다: [   ]
+
+자료가 부족하면 추측하지 말고 물어봐라.`
+          },
+          {
+            title: '회고 프롬프트',
+            text: `이 폴더의 지난 3개월 기록을 훑어봐라.
+- 반복해서 나타나는 문제 3개
+- 내가 말은 했지만 실행 안 한 것
+- 3개월 전과 달라진 점
+근거가 되는 파일 이름을 함께 적어라.`
+          }
+        ],
+        skeleton: {
+          title: '두 번째 뇌 폴더 지도 빌더',
+          desc: '내 상황에 맞는 폴더 구조를 짭니다. 결과 텍스트를 폴더 맨 위 rules.md에 두세요.',
+          fields: [
+            { key: 'domain', label: '첫 분야 (한두 개만)', default: '20_일 (프로젝트·고객·회의록)', textarea: true },
+            { key: 'location', label: '어디에 무엇이', default: '- 회의록 → 23_회의록/YYYY-MM-DD_상대.md\n- 고객 정보 → 22_고객/회사명.md\n- 아이디어 → 30_지식/inbox.md', textarea: true },
+            { key: 'reply', label: '대답 방식', default: '- 존댓말, 결론 먼저\n- 폴더에 없는 내용은 "자료 없음"이라고 답한다\n- 사실과 추측을 반드시 구분해서 표시한다', textarea: true },
+            { key: 'naming', label: '파일 이름 규칙', default: '- 날짜는 항상 YYYY-MM-DD로 앞에 붙인다\n- 상대 이름은 회사명 · 개인명 순', textarea: true }
+          ],
+          template: `# 이 폴더의 규칙
+
+## 이 폴더에는
+{{domain}}
+
+## 어디에 무엇이
+{{location}}
+
+## 대답 방식
+{{reply}}
+
+## 파일 이름
+{{naming}}`
+        },
+        checklist: [
+          'AI 에디터를 설치했다',
+          '로컬 폴더를 만들었다 (클라우드 동기화 폴더 아님)',
+          '50문답으로 내 프로필 문서를 만들었다',
+          '번호 붙인 폴더 구조와 규칙 파일이 있다',
+          '비공개 저장소에 백업을 걸었다',
+          '한 분야에 진짜 자료를 넣었다',
+          '실제 업무 하나를 이 폴더에서 처리해 봤다'
+        ]
+      },
+      {
+        id: 'ch9',
+        num: '09',
+        title: '도구 지도와 용어집',
+        kicker: 'PLAYBOOK · 9장',
+        desc: '마지막 장은 돌아와서 펴 보는 곳입니다. 무엇을 언제 쓰는지, 모르는 말이 나올 때 어디를 보는지.',
+        body: `### 이름 말고 갈래로 외운다
+
+도구는 수백 개고 매주 새로 나옵니다. 이름을 따라가는 건 무의미합니다. **과제 → 갈래 → 도구** 순서로 생각하세요. 갈래만 정하면 그 안에서는 아무거나 골라도 됩니다. 새 서비스가 나와도 제자리를 찾아갑니다.
+
+| 갈래 | 언제 쓰나 |
+|---|---|
+| 대화형 | 글쓰기, 분석, 아이디어, 검토 |
+| 출처형 | 사실 확인, 최신 정보, 근거가 필요할 때 |
+| 내 자료형 | 내가 올린 문서 안에서만 답해야 할 때 |
+| 코딩형 | 사이트, 앱, 봇, 자동화 만들기 |
+| 음성형 | 받아쓰기, 회의록, 음성 입력 |
+| 문서형 | 슬라이드, 표, 이미지 만들기 |
+
+### 네 가지 질문으로 좁힌다
+
+1. **어떤 종류의 일인가?** 글과 분석이면 대화형. 근거가 필요하면 출처형. 코드면 코딩형.
+2. **결과가 파일이어야 하나?** 그렇다면 처음부터 파일을 내놓는 도구를 쓰세요. 대화창에서 복사하는 것보다 빠릅니다.
+3. **한 번인가 반복인가?** 매주 반복이면 자동화나 봇을 고려할 시점입니다.
+4. **내 자료가 이미 있나?** 있다면 그 자료 안에서만 답하는 도구가 정확합니다.
+
+> 초보가 가장 자주 하는 실수는 **모든 걸 챗봇 하나에 밀어 넣는 것**입니다. 절반은 전용 도구가 훨씬 빠릅니다.
+
+### 상황별 대응표
+
+| 이런 일이 생기면 | 이 갈래를 쓴다 |
+|---|---|
+| 보고서·기획서 초안 | 대화형 |
+| 출처가 필요한 조사 | 출처형 |
+| 내 PDF 더미 요약 | 내 자료형 |
+| 회의 녹음 정리 | 음성형 → 대화형 |
+| 사이트·봇 만들기 | 코딩형 |
+| 발표 자료 만들기 | 문서형 |
+| 표·수식 다루기 | 대화형 + 스프레드시트 |
+| 긴 영상 요약 | 음성형 → 대화형 |
+
+### 시작할 때의 조합
+
+열다섯 개를 한꺼번에 구독하지 마세요. 넷이면 충분합니다.
+
+1. **대화형 하나** — 주력. 글·분석·검토 대부분을 여기서
+2. **출처형 하나** — 사실 확인 전용
+3. **음성형 하나** — 회의와 메모 받아쓰기
+4. **내 자료형 하나** — 문서 더미를 다룰 때
+
+> 네 개로 몇 달 써 보고, **구체적인 불편이 생겼을 때만** 하나씩 늘리세요. 도구가 많다고 결과가 좋아지지 않습니다.
+
+### 용어집 · 기본
+
+| 용어 | 뜻 |
+|---|---|
+| LLM | 글을 이해하고 쓰는 AI 모델 |
+| 프롬프트 | 모델에게 보내는 요청이나 지시 |
+| 맥락 | 질문 앞에 넣어 준 모든 배경 정보 |
+| 맥락창 | 모델이 한 번에 기억할 수 있는 분량 |
+| 토큰 | 글을 세는 단위. 비용의 기준 |
+| 환각 | 없는 사실을 자신 있게 지어내는 현상 |
+| 멀티모달 | 글·이미지·소리·영상을 함께 다루는 것 |
+| 시스템 프롬프트 | 대화 뒤에서 미리 정해진 역할 설정 |
+| 제로샷 | 예시 없이 곧바로 시키는 방식 |
+| 퓨샷 | 예시 두세 개를 보여 준 뒤 시키는 방식 |
+| 멀티턴 | 한 대화 안에서 여러 번 주고받는 것 |
+| 그라운딩 | 답을 실제 자료에 붙들어 매는 것 |
+| 단계적 사고 | 순서대로 따져 보게 해 오답을 줄이는 방법 |
+| 온도 | 창의성 조절값. 낮으면 사실, 높으면 발산 |
+| RAG | 내가 준 문서 안에서만 답을 찾게 하는 방식 |
+| 에이전트 | 스스로 계획하고 도구를 써서 일을 끝내는 AI |
+| 서브에이전트 | 깨끗한 상태로 한 조각만 맡는 보조 에이전트 |
+| 파인튜닝 | 내 데이터로 모델을 추가 학습시키는 것 |
+| MCP | AI를 외부 서비스에 연결하는 공통 규격 |
+| 스킬 | 특정 작업을 어떻게 하는지 적어 둔 지시서 묶음 |
+| 임베딩 | 글을 숫자로 바꿔 의미가 가까운 것끼리 묶는 기술 |
+| 벡터 검색 | 단어가 안 겹쳐도 뜻이 비슷하면 찾아 주는 검색 |
+| 추론 모델 | 답하기 전에 스스로 오래 생각하는 종류의 모델 |
+| 가드레일 | 해서는 안 될 일을 미리 막아 두는 안전장치 |
+
+### 용어집 · 만들기
+
+| 용어 | 뜻 |
+|---|---|
+| 바이브코딩 | 말로 설명하면 AI가 코드를 써 주는 방식 |
+| IDE | 코드를 쓰는 편집기 프로그램 |
+| 터미널 | 명령어로 컴퓨터를 다루는 검은 창 |
+| Git | 변경 이력을 저장하고 되돌리는 도구 |
+| 커밋 | 지금 상태를 기록해 두는 저장 지점 |
+| 저장소 | 프로젝트 폴더가 통째로 올라가는 곳 |
+| 배포 | 만든 것을 인터넷에 올려 남들이 쓰게 하는 일 |
+| API | 한 프로그램이 다른 프로그램을 부르는 통로 |
+| API 키 | 그 통로를 쓸 때 필요한 비밀번호 |
+| 환경변수 | 비밀키를 코드 밖에 따로 보관하는 자리 |
+| 마크다운 | 기호 몇 개로 제목·목록을 쓰는 간단한 서식 |
+| PRD | 무엇을 왜 누구를 위해 만드는지 적은 기획 문서 |
+| MVP | 되는지 확인할 수 있는 최소한의 첫 버전 |
+| 계획 모드 | 코드를 쓰기 전에 계획만 먼저 보여 주는 방식 |
+
+> 모르는 말이 나올 때만 펴 보면 됩니다. 외울 필요는 없습니다.`,
+        callouts: [
+          {
+            title: '도구 갈래 판단 (질문 4개)',
+            text: `이 일을 어떤 갈래로 처리할지 정해라.
+
+과제: [   ]
+
+판단 순서:
+1. 어떤 종류의 일인가? (글·분석/조사/코드/음성/문서)
+2. 결과가 파일이어야 하나?
+3. 한 번인가, 반복인가?
+4. 내 자료가 이미 있나?
+
+결과: 갈래 하나와, 그 갈래에서 흔히 쓰이는 도구 2~3개.`
+          }
+        ],
+        checklist: [
+          '이름 대신 갈래(대화형/출처형/내 자료형/코딩형/음성형/문서형)로 이해했다',
+          '지금 하는 일에 맞는 갈래를 골랐다',
+          '넷 이상 구독하지 않았다',
+          '모르는 말은 용어집에서 확인했다'
+        ]
+      },
+      {
+        id: 'appendix',
+        num: 'AP',
+        title: '부록 · 이미지 생성 프롬프트',
+        kicker: 'PLAYBOOK · 부록',
+        desc: '일러스트를 통일하는 단일 굵기 흰 선화 스타일. 그대로 복사해 쓸 수 있는 이미지 프롬프트 세트.',
+        body: `### 일러스트 스타일에 대하여
+
+이 세트의 삽화는 전부 **단일 굵기 흰 선화**로 통일되어 있습니다. 같은 인상을 AI 이미지로 다시 만들거나 교체하고 싶을 때 쓰라고, 장별 프롬프트를 그대로 실었습니다.
+
+### 공통 스타일 문구
+
+이 문구를 각 장면 설명 앞이나 뒤에 붙이면 됩니다. 열세 장을 뽑는 내내 이 부분을 한 글자도 바꾸지 않는 것이 통일감의 조건입니다.
+
+### 장별 장면 설명
+
+| 장 | 장면 |
+|---|---|
+| 표지 | a hiker standing on a mountain ridge at night, backpack and trekking pole, crescent moon and small pine trees |
+| 목차 | an unfolded trail map with dotted route lines and a round compass beside it |
+| 시작 | a hiking backpack next to a pair of hiking boots and a walking stick |
+| 1장 | an architectural blueprint on a drafting table with a pencil laid across it |
+| 2장 | a clipboard with a checklist, stacked paper documents and a round stamp |
+| 3장 | a flag planted on a mountain summit with a dotted trail leading up to it |
+| 4장 | an open laptop beside a small camping tent and a campfire |
+| 5장 | a megaphone emitting dotted signal waves, with a small heart icon |
+| 6장 | a bar chart with a dotted trend line, and a magnifying glass over it |
+| 7장 | an open notebook with a fountain pen and a single ink drop |
+| 8장 | a tall pine tree whose branches connect upward into a constellation of stars |
+| 9장 | a wooden signpost with four directional arrow boards pointing different ways |
+| 마무리 | two hikers beside a summit marker stone on a mountain peak at night |
+
+### 쓰는 법
+
+1. 위 장면 설명 하나를 고릅니다.
+2. 앞쪽의 공통 스타일 문구를 뒤에 이어 붙입니다.
+3. 가로세로 비율은 1:1 또는 4:3으로 요청합니다.
+4. 배경이 검게 나오면 그대로 두고, 어두운 페이지에 얹습니다. 밝은 페이지에 쓸 때는 색을 반전해 흰 바탕에 검은 선으로 바꿉니다.
+
+### 결과가 흔들릴 때
+
+- 선이 두꺼워지면 **ultra thin lines**를 앞쪽에 추가
+- 색이 섞이면 **strictly monochrome, black and white only** 강조
+- 너무 복잡하면 **maximum 12 lines total**처럼 개수 제한
+
+> 열세 장을 **한 번에 이어서 생성**하세요. 며칠에 나눠 뽑으면 획 굵기와 밀도가 서로 달라져 한 세트처럼 보이지 않습니다.
+
+색을 넣고 싶다면 흰색 대신 **연한 라임(#EFFF3E)** 한 가지만 쓰세요. 두 가지 이상 쓰는 순간 이 디자인의 절제가 무너집니다.`,
+        callouts: [
+          {
+            title: '공통 스타일 문구 (모든 장면에 붙여 쓰세요)',
+            text: `minimalist single-weight line art illustration,
+thin white outlines on pure black background,
+no fill, no shading, no gradient, no color,
+hand-drawn feel, uniform 2px stroke,
+rounded line caps, generous negative space,
+centered composition, flat 2D, technical sketch style`
+          }
+        ],
+        skeleton: {
+          title: '이미지 프롬프트 조립기',
+          desc: '장면 설명을 고르거나 직접 쓰면 공통 스타일 문구가 자동으로 붙습니다.',
+          fields: [
+            { key: 'scene', label: '장면 설명 (영문)', default: 'a hiking backpack next to a pair of hiking boots and a walking stick', textarea: true },
+            { key: 'ratio', label: '비율', default: '1:1' },
+            { key: 'extra', label: '추가 조건', default: 'ultra thin lines, strictly monochrome, black and white only', textarea: true }
+          ],
+          template: `{{scene}},
+minimalist single-weight line art illustration,
+thin white outlines on pure black background,
+no fill, no shading, no gradient, no color,
+hand-drawn feel, uniform 2px stroke,
+rounded line caps, generous negative space,
+centered composition, flat 2D, technical sketch style,
+{{extra}}
+--ar {{ratio}}`
+        },
+        checklist: [
+          '공통 스타일 문구를 그대로 사용했다',
+          '한 번에 열세 장을 이어서 생성했다',
+          '색을 두 가지 이상 쓰지 않았다',
+          '비율을 1:1 또는 4:3으로 요청했다'
+        ]
+      }
+    ];
+
+    /* ===================== 간이 마크다운 렌더러 (플레이북 본문용) ===================== */
+    function renderPlaybookMarkdown(md) {
+      if (!md) return '';
+      const lines = md.split('\n');
+      let html = '';
+      let inList = false;
+      let inTable = false;
+      let inCode = false;
+      let codeBuf = [];
+      let tableBuf = [];
+
+      const inline = (s) =>
+        s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+         .replace(/`([^`]+)`/g, '<code style="background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:0.92em;">$1</code>');
+
+      const flushList = () => { if (inList) { html += '</ul>'; inList = false; } };
+      const flushTable = () => {
+        if (!inTable) return;
+        html += '<table class="pb-table"><thead><tr>';
+        const headers = (tableBuf[0] || '').split('|').filter(c => c.trim() !== '');
+        headers.forEach(h => { html += '<th>' + inline(h.trim()) + '</th>'; });
+        html += '</tr></thead><tbody>';
+        for (let i = 2; i < tableBuf.length; i++) {
+          const cells = tableBuf[i].split('|').filter(c => c.trim() !== '');
+          if (cells.length === 0) continue;
+          html += '<tr>';
+          cells.forEach(c => { html += '<td>' + inline(c.trim()) + '</td>'; });
+          html += '</tr>';
+        }
+        html += '</tbody></table>';
+        tableBuf = [];
+        inTable = false;
+      };
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.trim().startsWith('```')) {
+          if (inCode) {
+            html += '<pre>' + codeBuf.join('\n') + '</pre>';
+            codeBuf = []; inCode = false;
+          } else {
+            flushList(); flushTable(); inCode = true;
+          }
+          continue;
+        }
+        if (inCode) { codeBuf.push(line); continue; }
+
+        if (line.startsWith('|') && line.includes('|', 1)) {
+          flushList();
+          if (!inTable) { inTable = true; tableBuf = []; }
+          tableBuf.push(line);
+          continue;
+        } else if (inTable) {
+          flushTable();
+        }
+
+        if (line.startsWith('### ')) {
+          flushList();
+          html += '<h3>' + inline(line.slice(4)) + '</h3>';
+        } else if (line.startsWith('## ')) {
+          flushList();
+          html += '<h2>' + inline(line.slice(3)) + '</h2>';
+        } else if (line.startsWith('> ')) {
+          flushList();
+          html += '<blockquote>' + inline(line.slice(2)) + '</blockquote>';
+        } else if (/^\d+\.\s/.test(line)) {
+          flushList();
+          const m = line.match(/^(\d+)\.\s(.*)/);
+          if (m) html += '<p style="margin:4px 0;padding-left:6px;"><strong style="color:var(--playbook-accent);font-family:monospace;">' + m[1] + '.</strong> ' + inline(m[2]) + '</p>';
+        } else if (line.startsWith('- ')) {
+          if (!inList) { html += '<ul>'; inList = true; }
+          html += '<li>' + inline(line.slice(2)) + '</li>';
+        } else if (line.trim() === '') {
+          flushList();
+          html += '<div style="height:8px;"></div>';
+        } else {
+          flushList();
+          html += '<p>' + inline(line) + '</p>';
+        }
+      }
+      flushList();
+      flushTable();
+      if (inCode) html += '<pre>' + codeBuf.join('\n') + '</pre>';
+      return html;
+    }
+
+    /* ===================== 프롬프트 빌더 컴포넌트 ===================== */
+    function PromptBuilder({ skeleton, onCopy }) {
+      const initValues = {};
+      skeleton.fields.forEach(f => { initValues[f.key] = f.default || ''; });
+      const [values, setValues] = React.useState(initValues);
+
+      React.useEffect(() => {
+        const nv = {};
+        skeleton.fields.forEach(f => { nv[f.key] = f.default || ''; });
+        setValues(nv);
+      }, [skeleton]);
+
+      let preview = skeleton.template;
+      skeleton.fields.forEach(f => {
+        const v = values[f.key] || ('[' + f.label + ']');
+        preview = preview.split('{{' + f.key + '}}').join(v);
+      });
+
+      const reset = () => {
+        const nv = {};
+        skeleton.fields.forEach(f => { nv[f.key] = f.default || ''; });
+        setValues(nv);
+      };
+
+      const clear = () => {
+        const nv = {};
+        skeleton.fields.forEach(f => { nv[f.key] = ''; });
+        setValues(nv);
+      };
+
+      return (
+        <div className="pb-builder">
+          <div className="pb-builder-title">🛠 {skeleton.title}</div>
+          <div className="pb-builder-desc">{skeleton.desc}</div>
+
+          {skeleton.fields.map(f => (
+            <div className="pb-var-row" key={f.key} style={f.textarea ? { alignItems: 'flex-start' } : {}}>
+              <label className="pb-var-label">{f.label}</label>
+              {f.textarea ? (
+                <textarea
+                  className="pb-var-textarea"
+                  value={values[f.key]}
+                  onChange={e => setValues({ ...values, [f.key]: e.target.value })}
+                />
+              ) : (
+                <input
+                  className="pb-var-input"
+                  value={values[f.key]}
+                  onChange={e => setValues({ ...values, [f.key]: e.target.value })}
+                />
+              )}
+            </div>
+          ))}
+
+          <div className="pb-preview">{preview}</div>
+
+          <div className="pb-btn-row">
+            <button className="pb-btn" onClick={() => onCopy(preview)}>📋 프롬프트 복사</button>
+            <button className="pb-btn-sub" onClick={reset}>↺ 기본값 되돌리기</button>
+            <button className="pb-btn-sub" onClick={clear}>✕ 모두 비우기</button>
+          </div>
+        </div>
+      );
+    }
+
+    /* ===================== 체크리스트 컴포넌트 ===================== */
+    function Checklist({ items, storageKey }) {
+      const [checked, setChecked] = React.useState(() => {
+        try {
+          const raw = localStorage.getItem(storageKey);
+          if (raw) return JSON.parse(raw);
+        } catch (e) {}
+        return Array(items.length).fill(false);
+      });
+
+      React.useEffect(() => {
+        try {
+          const raw = localStorage.getItem(storageKey);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed.length === items.length) setChecked(parsed);
+            else setChecked(Array(items.length).fill(false));
+          } else {
+            setChecked(Array(items.length).fill(false));
+          }
+        } catch (e) {}
+      }, [storageKey, items.length]);
+
+      const toggle = (i) => {
+        const next = [...checked];
+        next[i] = !next[i];
+        setChecked(next);
+        try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch (e) {}
+      };
+
+      const doneCount = checked.filter(Boolean).length;
+
+      return (
+        <div className="pb-checklist">
+          <div className="pb-checklist-title">✅ 보내기 전 점검</div>
+          {items.map((it, i) => (
+            <div key={i} className={"pb-check-row " + (checked[i] ? 'checked' : '')} onClick={() => toggle(i)}>
+              <div className="pb-check-box"></div>
+              <span>{it}</span>
+            </div>
+          ))}
+          <div className="pb-progress">진행: {doneCount} / {items.length}</div>
+        </div>
+      );
+    }
+
+    /* ===================== 자유 작성 실습 컴포넌트 ===================== */
+    function FreeExercise({ exercise, onCopy }) {
+      const [text, setText] = React.useState('');
+      const [result, setResult] = React.useState(null);
+
+      React.useEffect(() => { setText(''); setResult(null); }, [exercise.id]);
+
+      const submit = () => {
+        if (exercise.check(text)) setResult('good');
+        else setResult('bad');
+      };
+
+      return (
+        <div className="pb-builder" style={{ borderColor: 'var(--accent2)' }}>
+          <div className="pb-builder-title" style={{ color: 'var(--accent2)' }}>🎯 {exercise.title}</div>
+          <div className="pb-builder-desc">{exercise.hint}</div>
+          <textarea
+            className="pb-var-textarea"
+            style={{ minHeight: 110 }}
+            value={text}
+            placeholder="여기에 프롬프트를 작성해 보세요..."
+            onChange={e => { setText(e.target.value); setResult(null); }}
+          />
+          <div className="pb-btn-row">
+            <button className="pb-btn" onClick={submit}>제출하고 판정받기</button>
+            <button className="pb-btn-sub" onClick={() => onCopy(text)}>📋 내 프롬프트 복사</button>
+          </div>
+          {result === 'good' && (
+            <div className="pb-tip" style={{ borderLeftColor: 'var(--color-accent)', background: 'rgba(16,185,129,0.08)', marginTop: 12 }}>
+              {exercise.good}
+            </div>
+          )}
+          {result === 'bad' && (
+            <div className="pb-tip" style={{ borderLeftColor: '#d05a4e', background: 'rgba(208,90,78,0.08)', marginTop: 12 }}>
+              {exercise.bad}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    /* ===================== 플레이북 뷰 (한 챕터 전체 렌더) ===================== */
+    function PlaybookView({ chapter, onCopy }) {
+      return (
+        <React.Fragment>
+          <header className="hero playbook">
+            <span className="kicker">{chapter.kicker}</span>
+            <h1>{chapter.title} <span className="pb-badge">CH {chapter.num}</span></h1>
+            <p>{chapter.desc}</p>
+          </header>
+
+          <article className="chapter-section playbook-body">
+            <div dangerouslySetInnerHTML={{ __html: renderPlaybookMarkdown(chapter.body) }} />
+
+            {chapter.callouts && chapter.callouts.length > 0 && (
+              <React.Fragment>
+                <hr style={{ borderColor: 'var(--line)', margin: '30px 0' }} />
+                <h2>📋 복사해 쓰는 프롬프트</h2>
+                {chapter.callouts.map((c, i) => (
+                  <div key={i}>
+                    <div className="pb-callout-head">
+                      <b>{c.title}</b>
+                      <button className="pb-btn-sub" style={{ fontSize: 11, padding: '4px 10px' }} onClick={() => onCopy(c.text)}>📋 복사</button>
+                    </div>
+                    <div className="pb-callout">{c.text}</div>
+                  </div>
+                ))}
+              </React.Fragment>
+            )}
+
+            {chapter.skeleton && (
+              <React.Fragment>
+                <hr style={{ borderColor: 'var(--line)', margin: '30px 0' }} />
+                <h2>🧩 프롬프트 뼈대 실습</h2>
+                <p style={{ color: 'var(--ink-dim)', fontSize: 14 }}>
+                  각 칸에 내 상황을 채우면 아래 완성된 프롬프트가 즉시 만들어집니다. 그대로 챗봇 대화창에 붙여 넣어 쓰세요.
+                </p>
+                <PromptBuilder skeleton={chapter.skeleton} onCopy={onCopy} />
+              </React.Fragment>
+            )}
+
+            {chapter.exercises && chapter.exercises.length > 0 && (
+              <React.Fragment>
+                <hr style={{ borderColor: 'var(--line)', margin: '30px 0' }} />
+                <h2>🎯 자유 작성 실습</h2>
+                {chapter.exercises.map(ex => (
+                  <FreeExercise key={ex.id} exercise={ex} onCopy={onCopy} />
+                ))}
+              </React.Fragment>
+            )}
+
+            {chapter.checklist && chapter.checklist.length > 0 && (
+              <React.Fragment>
+                <hr style={{ borderColor: 'var(--line)', margin: '30px 0' }} />
+                <Checklist items={chapter.checklist} storageKey={'pb-chk-' + chapter.id} />
+              </React.Fragment>
+            )}
+          </article>
+        </React.Fragment>
+      );
+    }
+
+    function App() {
+      const [mode, setMode] = useState('master'); // 'master' | 'playbook'
+      const [playbookIdx, setPlaybookIdx] = useState(0);
+      const [pbToast, setPbToast] = useState('');
+      const [currentChIdx, setCurrentChIdx] = useState(0);
+      const [unlockedChIdx, setUnlockedChIdx] = useState(0);
+      const [currentSubIdx, setCurrentSubIdx] = useState(0);
+
+      const [promptText, setPromptText] = useState('');
+      const [powerScore, setPowerScore] = useState(0);
+      const [theme, setTheme] = useState('dark');
+      const [apiOutput, setApiOutput] = useState('');
+      const [isExecuting, setIsExecuting] = useState(false);
+      const [copied, setCopied] = useState(false);
+
+      const [showExample, setShowExample] = useState(false);
+
+      const [hasPersona, setHasPersona] = useState(false);
+      const [hasContext, setHasContext] = useState(false);
+      const [hasFormat, setHasFormat] = useState(false);
+      
+      const [chapterStatusList, setChapterStatusList] = useState(
+        Array(8).fill().map(() => ({
+          quizSolved: false,
+          practiceSolvedList: [false, false, false]
+        }))
+      );
+      
+      const [selectedQuizOpt, setSelectedQuizOpt] = useState(null);
+      const [quizAnswered, setQuizAnswered] = useState(false);
+      const [studentName, setStudentName] = useState('');
+      const [showCertModal, setShowCertModal] = useState(false);
+
+      const currentCh = CHAPTERS[currentChIdx];
+      const currentMission = currentCh.missions[currentSubIdx];
+
+      const toggleTheme = () => {
+        const nextTheme = theme === 'dark' ? 'light' : 'dark';
+        setTheme(nextTheme);
+        document.documentElement.setAttribute('data-theme', nextTheme);
+      };
+
+      useEffect(() => {
+        setPromptText('');
+        setApiOutput('');
+        setIsExecuting(false);
+        setSelectedQuizOpt(null);
+        setQuizAnswered(chapterStatusList[currentChIdx].quizSolved);
+        setCurrentSubIdx(0);
+        setShowExample(false);
+      }, [currentChIdx]);
+
+      useEffect(() => {
+        setPromptText('');
+        setApiOutput('');
+        setIsExecuting(false);
+        setShowExample(false);
+      }, [currentSubIdx]);
+
+      useEffect(() => {
+        const val = promptText.trim();
+        if (!val) {
+          setHasPersona(false);
+          setHasContext(false);
+          setHasFormat(false);
+          setPowerScore(0);
+          return;
+        }
+
+        const personaKeywords = [
+          '수의사', '사육사', '훈련사', '세무사', '회계사', '개발자', 
+          '엔지니어', '아키텍트', '프로그래머', '교수', '마케터', 
+          '디렉터', 'CISO', '책임자', '담당자', '전문가', '작가', '카피라이터'
+        ];
+        const detectedPersona = personaKeywords.some(k => val.includes(k));
+        setHasPersona(detectedPersona);
+
+        const contextKeywords = [
+          '때', '상황', '이유', '때문에', '결석', '독감', '사고', '파손', 
+          '배송', '매출', '실적', '비건', '친환경', '미닝아웃', '보안', 
+          '리포트', '대학', '전공', '목표', '과제', '트렌드'
+        ];
+        const detectedContext = contextKeywords.some(k => val.includes(k)) || val.length >= 15;
+        setHasContext(detectedContext);
+
+        const formatKeywords = [
+          '표', 'table', '테이블', 'json', '{', '글머리', '기호', '•', 
+          '->', '=>', ':', '해시태그', '#', 'faq', 'q&a', '단답', '축약'
+        ];
+        const detectedFormat = formatKeywords.some(k => val.toLowerCase().includes(k)) || (currentChIdx === 0 && currentSubIdx === 0 && val.length <= 10);
+        setHasFormat(detectedFormat);
+
+        const isMissionPassed = currentMission.checkPassed(promptText);
+        
+        if (isMissionPassed && (currentChIdx === 0 && currentSubIdx === 0 ? true : detectedContext)) {
+          setPowerScore(100);
+        } else {
+          let score = 30;
+          if (detectedPersona) score += 20;
+          if (detectedContext) score += 20;
+          if (detectedFormat) score += 20;
+          setPowerScore(Math.min(score, 90));
+        }
+
+      }, [promptText, currentChIdx, currentSubIdx]);
+
+      const handleExecute = () => {
+        if (!promptText.trim()) return;
+        setIsExecuting(true);
+        setApiOutput('AI가 전송된 프롬프트를 구문 분석하여 출력 퀄리티 변동 폭을 연산 중입니다...');
+        
+        const isPassed = powerScore === 100;
+
+        setTimeout(() => {
+          if (isPassed) {
+            setApiOutput(currentMission.successResponse);
+            
+            const newList = [...chapterStatusList];
+            newList[currentChIdx].practiceSolvedList[currentSubIdx] = true;
+            setChapterStatusList(newList);
+            
+            const allPracticeSolved = newList[currentChIdx].practiceSolvedList.every(v => v === true);
+            if (newList[currentChIdx].quizSolved && allPracticeSolved && currentChIdx === unlockedChIdx && unlockedChIdx < 7) {
+              setUnlockedChIdx(prev => prev + 1);
+            }
+          } else {
+            setApiOutput(currentMission.badResponse + '\n\n⚠️ [프롬프트 파워 80% 미만 훈수 실패]\n\n"지시하신 문장에 필수 조건 단어가 누락되어 퀄리티 교정이 불가능합니다. 아래 속성 체크리스트의 [✕ 미완료] 항목을 확인하고 문장을 다듬어 전송해 주세요!"');
+          }
+          setIsExecuting(false);
+        }, 900);
+      };
+
+      const handleSkip = () => {
+        setPromptText(currentMission.answerExample);
+        setPowerScore(100);
+        setHasPersona(true);
+        setHasContext(true);
+        setHasFormat(true);
+        
+        const newList = [...chapterStatusList];
+        newList[currentChIdx].practiceSolvedList[currentSubIdx] = true;
+        setChapterStatusList(newList);
+
+        setApiOutput('⏭️ [문제 건너뛰기 승인]\n문제를 성공적으로 통과 처리했습니다! 예시 답안 프롬프트가 입력창에 자동으로 세팅되었습니다.\n\n' + currentMission.successResponse);
+
+        const allPracticeSolved = newList[currentChIdx].practiceSolvedList.every(v => v === true);
+        if (newList[currentChIdx].quizSolved && allPracticeSolved && currentChIdx === unlockedChIdx && unlockedChIdx < 7) {
+          setUnlockedChIdx(prev => prev + 1);
+        }
+      };
+
+      const applyAnswerExample = () => {
+        setPromptText(currentMission.answerExample);
+        setShowExample(false);
+      };
+
+      const handleQuizSelect = (optIdx) => {
+        if (quizAnswered) return;
+        setSelectedQuizOpt(optIdx);
+        setQuizAnswered(true);
+
+        const newList = [...chapterStatusList];
+        const isCorrect = optIdx === currentCh.quizAnswerIdx;
+        
+        if (isCorrect) {
+          newList[currentChIdx].quizSolved = true;
+          setChapterStatusList(newList);
+          
+          const allPracticeSolved = newList[currentChIdx].practiceSolvedList.every(v => v === true);
+          if (allPracticeSolved && currentChIdx === unlockedChIdx && unlockedChIdx < 7) {
+            setUnlockedChIdx(prev => prev + 1);
+          }
+        }
+      };
+
+      const handleResetQuiz = () => {
+        setSelectedQuizOpt(null);
+        setQuizAnswered(false);
+        const newList = [...chapterStatusList];
+        newList[currentChIdx].quizSolved = false;
+        setChapterStatusList(newList);
+      };
+
+      const handleCopy = () => {
+        if (!promptText.trim()) return;
+        navigator.clipboard.writeText(promptText).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        });
+      };
+
+      const handlePbCopy = (text) => {
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(() => {
+          setPbToast('✔ 프롬프트가 복사되었습니다');
+          setTimeout(() => setPbToast(''), 2000);
+        }).catch(() => {
+          setPbToast('⚠ 복사 실패 — 수동으로 선택해서 복사해 주세요');
+          setTimeout(() => setPbToast(''), 2500);
+        });
+      };
+
+      // 모드/챕터가 바뀌면 스크롤을 위로
+      useEffect(() => {
+        const main = document.querySelector('.main');
+        if (main) main.scrollTop = 0;
+        window.scrollTo(0, 0);
+      }, [mode, playbookIdx, currentChIdx]);
+
+      const handleNextSubMission = () => {
+        if (currentSubIdx < 2) {
+          setCurrentSubIdx(prev => prev + 1);
+        }
+      };
+
+      const currentChPracticeSolvedCount = chapterStatusList[currentChIdx].practiceSolvedList.filter(Boolean).length;
+      const allMissionsSolved = currentChPracticeSolvedCount === 3;
+
+      return (
+        <div className="layout">
+          
+          <aside className="sidebar">
+            <div>
+              <div className="brand">
+                <div className="dot"></div>
+                <div>
+                  <b>PROMPT MASTER</b>
+                  <small>동덕여대 AI콘텐츠제작</small>
+                </div>
+              </div>
+
+              <div className="section-heading">MASTER CLASS · 1주차</div>
+              <div className="toc-list">
+                {CHAPTERS.map((ch, idx) => {
+                  const isActive = mode === 'master' && idx === currentChIdx;
+                  const isDone = chapterStatusList[idx].quizSolved && chapterStatusList[idx].practiceSolvedList.every(v => v === true);
+
+                  return (
+                    <div
+                      key={ch.id}
+                      className={"toc-ch " + (isActive ? "active" : "") + (isDone ? " done" : "")}
+                      onClick={() => { setMode('master'); setCurrentChIdx(idx); }}
+                    >
+                      <span className="toc-num">{String(ch.id).padStart(2, '0')}</span>
+                      <span className="toc-label">{ch.title}</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="section-heading">프롬프트 마스터 레벨 · 프롬프트 플레이북</div>
+              <div className="toc-list">
+                {PLAYBOOK_CHAPTERS.map((ch, idx) => {
+                  const isActive = mode === 'playbook' && idx === playbookIdx;
+                  return (
+                    <div
+                      key={ch.id}
+                      className={"toc-ch playbook " + (isActive ? "active" : "")}
+                      onClick={() => { setMode('playbook'); setPlaybookIdx(idx); }}
+                    >
+                      <span className="toc-num">{ch.num}</span>
+                      <span className="toc-label">{ch.title}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="sidebar-footer">
+              <button className="theme-btn" onClick={toggleTheme}>
+                {theme === 'dark' ? '☀️ 라이트 모드로 보기' : '🌙 다크 모드로 보기'}
+              </button>
+              <div style={{ fontSize: 10.5, color: 'var(--ink-dim)', textAlign: 'center' }}>
+                AI Innovation Studio · Playbook 통합판
+              </div>
+            </div>
+          </aside>
+
+          <main className="main">
+            <div className="content">
+
+              {mode === 'master' && (<React.Fragment>
+              <header className="hero">
+                <span className="kicker">{currentCh.kicker}</span>
+                <h1>{currentCh.title}</h1>
+                <p>{currentCh.desc}</p>
+              </header>
+
+              <article className="chapter-section">
+                <div dangerouslySetInnerHTML={{ __html: currentCh.theory
+                  .replace(/\n\n/g, '<br /><br />')
+                  .replace(/### (.*)/g, '<h3>$1</h3>')
+                  .replace(/\*\*(.*)\*\*/g, '<strong>$1</strong>')
+                }} />
+
+                <hr style={{ borderColor: 'var(--line)', margin: '30px 0' }} />
+
+                <section className="pg-terminal">
+                  <div className="pg-bar">
+                    <i></i><i></i><i></i>
+                    <span>PROMPT PLAYGROUND - 실습 세션 ({currentChPracticeSolvedCount}/3 완료)</span>
+                  </div>
+
+                  <div className="presets" style={{ display: 'flex', gap: '8px', padding: '10px 14px', background: '#12131a', borderBottom: '1px solid #20232b' }}>
+                    {[0, 1, 2].map((sIdx) => {
+                      const isCleared = chapterStatusList[currentChIdx].practiceSolvedList[sIdx];
+                      const isActive = sIdx === currentSubIdx;
+                      return (
+                        <button
+                          key={sIdx}
+                          onClick={() => setCurrentSubIdx(sIdx)}
+                          style={{
+                            background: isActive ? 'var(--accent)' : '#1c1e27',
+                            color: isActive ? '#0e0f13' : '#a7a396',
+                            border: '1px solid #2a2d38',
+                            borderRadius: '6px',
+                            padding: '6px 12px',
+                            fontSize: '0.78rem',
+                            fontWeight: '700',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {isCleared ? '★ ' : ''}문제 {sIdx + 1}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="pg-mission" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '6px' }}>
+                    <div style={{ display: 'flex', gap: '8px', width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span className="pg-mission-tag" style={{ background: 'rgba(217, 183, 117, 0.1)', color: '#d9b775', border: '1px solid #d9b775' }}>
+                        {currentCh.title} - 문제 0{currentSubIdx + 1}
+                      </span>
+                      <span style={{ fontSize: '0.75rem', color: '#a7a396' }}>{currentMission.title}</span>
+                    </div>
+                    <p style={{ fontSize: '0.85rem', color: '#e2efe8', fontWeight: '600', lineHeight: '1.45', marginTop: '6px' }}>
+                      {currentMission.situation}
+                    </p>
+                  </div>
+
+                  <div className="pg-interactive-area">
+                    
+                    {showExample && (
+                      <div style={{
+                        background: 'rgba(201, 168, 106, 0.08)',
+                        border: '1px dashed var(--accent2)',
+                        borderRadius: '8px',
+                        padding: '12px',
+                        marginBottom: '12px',
+                        fontSize: '0.8rem',
+                        lineHeight: '1.5'
+                      }}>
+                        <b style={{ color: 'var(--accent2)', display: 'block', marginBottom: '4px' }}>💡 모범 답안 예시:</b>
+                        <p style={{ color: 'var(--ink)', fontStyle: 'italic', marginBottom: '8px' }}>
+                          "{currentMission.answerExample}"
+                        </p>
+                        <button className="theme-btn" style={{ fontSize: '0.7rem', padding: '4px 8px' }} onClick={applyAnswerExample}>
+                          👉 이 답안 적용하기 (자동 채우기)
+                        </button>
+                      </div>
+                    )}
+
+                    <textarea 
+                      className="pg-textarea"
+                      placeholder="상단에 명시된 문제 조건을 충족하는 훈수 프롬프트를 에디터에 작성하세요..."
+                      value={promptText}
+                      onChange={(e) => setPromptText(e.target.value)}
+                      disabled={isExecuting}
+                    />
+
+                    <div className="attribute-checklist">
+                      <div className={"attr-item " + (hasPersona ? "active" : "inactive")}>
+                        <span>{hasPersona ? '✓' : '✕'}</span>
+                        <span>페르소나 지정</span>
+                      </div>
+                      <div className={"attr-item " + (hasContext ? "active" : "inactive")}>
+                        <span>{hasContext ? '✓' : '✕'}</span>
+                        <span>상황 및 맥락 기술</span>
+                      </div>
+                      <div className={"attr-item " + (hasFormat ? "active" : "inactive")}>
+                        <span>{hasFormat ? '✓' : '✕'}</span>
+                        <span>출력 서식 제약</span>
+                      </div>
+                    </div>
+
+                    <div className="power-gauge">
+                      <div className="gauge-header">
+                        <span>⚡ 프롬프트 전송 파워</span>
+                        <span>{powerScore}%</span>
+                      </div>
+                      <div className="gauge-track">
+                        <div className="gauge-fill" style={{ width: powerScore + "%" }}></div>
+                      </div>
+                      <span className="gauge-feedback">
+                        {currentCh.missions[currentSubIdx].feedbackText(powerScore === 100)}
+                      </span>
+                    </div>
+
+                    <div className="pg-actions">
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button className="theme-btn" style={{ padding: '6px 12px', fontSize: '0.78rem' }} onClick={handleCopy}>
+                          📋 복사
+                        </button>
+                        <button className="theme-btn" style={{ padding: '6px 12px', fontSize: '0.78rem', borderColor: 'var(--accent2)' }} onClick={() => setShowExample(!showExample)}>
+                          💡 답안 예시 보기
+                        </button>
+                        <button className="theme-btn" style={{ padding: '6px 12px', fontSize: '0.78rem', borderColor: '#d05a4e' }} onClick={handleSkip}>
+                          ⏭️ 건너뛰기
+                        </button>
+                      </div>
+                      <button 
+                        className="pg-btn"
+                        onClick={handleExecute}
+                        disabled={powerScore < 100 || isExecuting}
+                      >
+                        제미나이 전송 & 실행 (Run)
+                      </button>
+                    </div>
+
+                    {(apiOutput || isExecuting) && (
+                      <pre className="pg-terminal-out">
+                        {apiOutput}
+                      </pre>
+                    )}
+
+                    {chapterStatusList[currentChIdx].practiceSolvedList[currentSubIdx] && (
+                      <div className="pg-clear-banner">
+                        <span>🎉 문제 {currentSubIdx + 1} 해결 성공!</span>
+                        {currentSubIdx < 2 ? (
+                          <button className="pg-btn" style={{ fontSize: '0.75rem', padding: '4px 10px' }} onClick={handleNextSubMission}>
+                            다음 문제 {currentSubIdx + 2}로 가기 ➡️
+                          </button>
+                        ) : (
+                          <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: '800' }}>⭐ 이 챕터의 3가지 실무 문제를 모두 완료했습니다!</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </section>
+
+                <hr style={{ borderColor: 'var(--line)', margin: '30px 0' }} />
+
+                <section className="quiz" style={{ opacity: allMissionsSolved ? 1 : 0.5 }}>
+                  <div className="quiz-head">확인 퀴즈 (Quiz) {!allMissionsSolved && '🔒 [문제 3개 완료 시 잠금해제]'}</div>
+                  <div className="quiz-question">{currentCh.quizQuestion}</div>
+                  
+                  <div className="quiz-opts">
+                    {currentCh.quizOptions.map((opt, oIdx) => {
+                      let statusClass = '';
+                      if (quizAnswered) {
+                        if (oIdx === currentCh.quizAnswerIdx) statusClass = 'correct';
+                        else if (selectedQuizOpt === oIdx) statusClass = 'wrong';
+                      }
+
+                      return (
+                        <button 
+                          key={oIdx}
+                          className={"quiz-opt " + statusClass}
+                          onClick={() => allMissionsSolved && handleQuizSelect(oIdx)}
+                          disabled={quizAnswered || !allMissionsSolved}
+                        >
+                          <span className="quiz-mark"></span>
+                          <span>{opt}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {quizAnswered && (
+                    <div className="quiz-explain">
+                      <b>해설:</b> {currentCh.quizExplain}
+                      {selectedQuizOpt !== currentCh.quizAnswerIdx && (
+                        <button className="theme-btn" style={{ marginTop: '10px', display: 'block', fontSize: '0.75rem' }} onClick={handleResetQuiz}>
+                          🔄 다시 풀기
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </section>
+
+                {chapterStatusList[currentChIdx].quizSolved && allMissionsSolved && (
+                  <div className="pg-clear-banner" style={{ background: 'rgba(224, 122, 75, 0.1)', borderColor: 'var(--accent)' }}>
+                    <span style={{ color: 'var(--accent)' }}>🥇 챕터 {currentCh.id} 완전 정복 완료! 목차에서 다음 챕터를 클릭해 나아가세요.</span>
+                    {currentChIdx === 7 && (
+                      <button className="pg-btn" style={{ background: 'var(--accent2)' }} onClick={() => setShowCertModal(true)}>
+                        👑 수료증 발급받기
+                      </button>
+                    )}
+                  </div>
+                )}
+
+              </article>
+              </React.Fragment>)}
+
+              {mode === 'playbook' && (
+                <PlaybookView
+                  chapter={PLAYBOOK_CHAPTERS[playbookIdx]}
+                  onCopy={handlePbCopy}
+                />
+              )}
+            </div>
+          </main>
+
+          {showCertModal && (
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <button className="close-btn" onClick={() => setShowCertModal(false)}>×</button>
+                <div className="cert-card">
+                  <div className="cert-corner c-tl"></div>
+                  <div className="cert-corner c-tr"></div>
+                  <div className="cert-corner c-bl"></div>
+                  <div className="cert-corner c-br"></div>
+
+                  <div className="cert-univ">DONGDUK WOMEN'S UNIVERSITY</div>
+                  <div className="cert-head">수 료 증</div>
+
+                  <div className="cert-main">
+                    <input 
+                      type="text" 
+                      placeholder="본인의 이름을 입력하세요"
+                      value={studentName}
+                      onChange={(e) => setStudentName(e.target.value)}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        borderBottom: '2px solid #d4af37',
+                        textAlign: 'center',
+                        color: '#fff',
+                        fontSize: '1.2rem',
+                        fontWeight: 700,
+                        width: '60%',
+                        marginBottom: '20px',
+                        outline: 'none'
+                      }}
+                    /><br />
+                    위 사람은 동덕여대 AI콘텐츠제작 교과목의<br />
+                    <strong>[구글 제미나이 기반 프롬프트 엔지니어링 마스터 코스]</strong>를<br />
+                    훌륭하게 수행하고 모든 이론 및 실습 평가를 패스하였기에<br />
+                    이 증서를 수여합니다.
+                  </div>
+
+                  <div className="cert-date">
+                    {new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  </div>
+                  <div className="cert-sign">
+                    동덕여자대학교 AI콘텐츠제작 담당교수 귀하
+                  </div>
+                </div>
+                <button className="cert-print-btn" onClick={() => window.print()}>
+                  🖨️ 수료증 인쇄 및 PDF 저장
+                </button>
+              </div>
+            </div>
+          )}
+
+          {copied && (
+            <div className="toast-msg" style={{ position: 'fixed', bottom: '20px', right: '20px', background: 'var(--panel)', border: '1px solid var(--line)', padding: '10px 16px', borderRadius: '8px', zIndex: 999 }}>
+              <span>✔️ 프롬프트가 복사되었습니다!</span>
+            </div>
+          )}
+
+          {pbToast && <div className="pb-copy-toast">{pbToast}</div>}
+
+        </div>
+      );
+    }
+
+    const container = document.getElementById('root');
+    const root = ReactDOM.createRoot(container);
+    root.render(<App />);
+  </script>
+
+</body>
+</html>

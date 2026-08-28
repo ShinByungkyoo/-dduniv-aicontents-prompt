@@ -1,0 +1,1891 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>프롬프트 엔지니어링 마스터 클래스 | 동덕여대 AI콘텐츠제작</title>
+  
+  <!-- React & Babel CDN 로드 (오프라인 더블 클릭 구동 지원) -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    /* ==========================================
+       📚 Claude Code 마스터 클래스 스타일 프롬프트 훈련 플랫폼 CSS
+       ========================================== */
+
+    :root {
+      /* 다크 테마 기본값 */
+      --bg: #0e0f13;
+      --panel: #15171d;
+      --panel2: #1b1e26;
+      --ink: #e7e3da;
+      --ink-dim: #a7a396;
+      --line: #2a2d38;
+      --accent: #e07a4b;       /* 오렌지 악센트 */
+      --accent2: #c9a86a;      /* 금빛 악센트 */
+      --code-bg: #1a1d24;
+      --color-primary: #06b6d4;
+      --color-accent: #10b981;
+      --sidebar-w: 280px;
+      --max-w: 880px;
+    }
+
+    :root[data-theme="light"] {
+      /* 라이트 테마 변수 */
+      --bg: #f4f1ea;
+      --panel: #fbf9f4;
+      --panel2: #efe9dd;
+      --ink: #26241f;
+      --ink-dim: #6b6656;
+      --line: #ded7c7;
+      --accent: #c25a2c;
+      --accent2: #a8813a;
+      --code-bg: #f0ebe0;
+      --color-primary: #0891b2;
+      --color-accent: #059669;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      line-height: 1.75;
+      font-size: 15.5px;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    /* 전체 레이아웃 */
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* 📂 좌측 사이드바 목차 (TOC) */
+    .sidebar {
+      width: var(--sidebar-w);
+      flex: 0 0 var(--sidebar-w);
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      background: var(--panel);
+      border-right: 1px solid var(--line);
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 20px;
+    }
+
+    .brand .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 3px rgba(224, 122, 75, 0.25);
+    }
+
+    .brand b {
+      font-size: 15px;
+      letter-spacing: 0.2px;
+      color: var(--ink);
+    }
+
+    .brand small {
+      display: block;
+      color: var(--ink-dim);
+      font-size: 11px;
+      font-weight: 400;
+      margin-top: 2px;
+    }
+
+    .toc-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .toc-ch {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      color: var(--ink-dim);
+      font-weight: 600;
+      font-size: 13.5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .toc-ch:hover {
+      background: var(--panel2);
+      color: var(--ink);
+    }
+
+    .toc-ch.active {
+      background: rgba(224, 122, 75, 0.12);
+      color: var(--accent);
+    }
+
+    .toc-num {
+      font-family: monospace;
+      font-size: 11px;
+      color: var(--accent2);
+      min-width: 20px;
+    }
+
+    .toc-ch.active .toc-num {
+      color: var(--accent);
+    }
+
+    .toc-ch.done .toc-label::after {
+      content: " ✓";
+      color: var(--color-accent);
+      font-weight: 800;
+      margin-left: 6px;
+    }
+
+    .sidebar-footer {
+      border-top: 1px solid var(--line);
+      padding-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .theme-btn {
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      font-size: 0.8rem;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .theme-btn:hover {
+      border-color: var(--accent);
+    }
+
+    /* 📖 중앙 메인 콘텐츠 영역 */
+    .main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      justify-content: center;
+      padding: 0 40px;
+      overflow-y: auto;
+    }
+
+    .content {
+      width: 100%;
+      max-width: var(--max-w);
+      padding: 48px 0 100px;
+    }
+
+    /* 히어로 카드 */
+    .hero {
+      background: linear-gradient(135deg, rgba(224, 122, 75, 0.08), var(--panel));
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 32px;
+    }
+
+    .hero .kicker {
+      font-family: monospace;
+      font-size: 11px;
+      color: var(--accent2);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .hero h1 {
+      font-size: 28px;
+      line-height: 1.3;
+      margin: 8px 0;
+      color: var(--ink);
+    }
+
+    .hero p {
+      color: var(--ink-dim);
+      font-size: 14.5px;
+    }
+
+    /* 챕터 문서 본문 */
+    .chapter-section {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .chapter-section h2 {
+      font-size: 22px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 8px;
+      margin-top: 24px;
+      color: var(--ink);
+    }
+
+    .chapter-section h3 {
+      font-size: 17px;
+      color: var(--accent);
+      margin-top: 14px;
+    }
+
+    .chapter-section p {
+      color: var(--ink-dim);
+      font-size: 15px;
+    }
+
+    .chapter-section ul, .chapter-section ol {
+      padding-left: 24px;
+      color: var(--ink-dim);
+    }
+
+    .chapter-section li {
+      margin-bottom: 6px;
+    }
+
+    .chapter-section strong {
+      color: var(--ink);
+    }
+
+    .chapter-section blockquote {
+      padding: 10px 16px;
+      border-left: 3px solid var(--accent);
+      background: var(--panel);
+      border-radius: 0 8px 8px 0;
+      color: var(--ink-dim);
+      font-style: italic;
+    }
+
+    .chapter-section pre {
+      background: var(--code-bg);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px;
+      overflow-x: auto;
+      font-family: monospace;
+      font-size: 13.5px;
+    }
+
+    /* 📊 내장형 플레이그라운드 (터미널 테마) */
+    .pg-terminal {
+      background: #0b0c10;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 24px 0;
+    }
+
+    .pg-bar {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      background: #15171d;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .pg-bar i {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 6px;
+      display: inline-block;
+    }
+
+    .pg-bar i:nth-child(1) { background: #e0574e; }
+    .pg-bar i:nth-child(2) { background: #c9a86a; }
+    .pg-bar i:nth-child(3) { background: #3aa76d; }
+
+    .pg-bar span {
+      margin-left: 6px;
+      font-size: 11px;
+      color: var(--ink-dim);
+    }
+
+    .pg-mission {
+      padding: 10px 14px;
+      background: #12131a;
+      border-bottom: 1px solid #24262f;
+      font-size: 13px;
+      color: #cfcabb;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .pg-mission-tag {
+      font-size: 11px;
+      color: #d9b775;
+      border: 1px solid #3a3d49;
+      border-radius: 20px;
+      padding: 2px 8px;
+    }
+
+    .pg-interactive-area {
+      padding: 16px;
+      background: #090a0d;
+    }
+
+    .pg-textarea {
+      width: 100%;
+      height: 76px;
+      background: #0e0f14;
+      border: 1px solid #2a2d38;
+      border-radius: 8px;
+      padding: 10px;
+      color: #a7f3d0;
+      font-family: monospace;
+      font-size: 13.5px;
+      resize: none;
+      margin-bottom: 12px;
+    }
+
+    .pg-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    /* 게이지 컨트롤 */
+    .power-gauge {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #2a2d38;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .gauge-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11.5px;
+      font-weight: 700;
+    }
+
+    .gauge-track {
+      width: 100%;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .gauge-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent) 0%, var(--color-accent) 100%);
+      transition: width 0.3s ease;
+    }
+
+    .gauge-feedback {
+      font-size: 11px;
+      color: var(--color-primary);
+    }
+
+    .pg-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .pg-btn {
+      background: var(--accent);
+      color: #0e0f13;
+      font-weight: 800;
+      font-size: 13px;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .pg-btn:hover:not(:disabled) {
+      filter: brightness(1.1);
+      box-shadow: 0 0 8px rgba(224, 122, 75, 0.4);
+    }
+
+    .pg-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* 터미널 출력 결과 */
+    .pg-terminal-out {
+      margin-top: 14px;
+      padding: 12px;
+      background: #06070a;
+      border: 1px solid #20232b;
+      border-radius: 6px;
+      font-size: 13px;
+      line-height: 1.6;
+      max-height: 200px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    .pg-clear-banner {
+      margin-top: 12px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid var(--color-accent);
+      border-radius: 6px;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .pg-clear-banner span {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--color-accent);
+    }
+
+    /* ✏️ 확인 퀴즈 블록 (Quiz) */
+    .quiz {
+      margin: 32px 0;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(201, 168, 106, 0.08), var(--panel));
+    }
+
+    .quiz-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--accent2);
+      margin-bottom: 12px;
+    }
+
+    .quiz-head::before {
+      content: "✏️";
+    }
+
+    .quiz-question {
+      font-weight: 700;
+      font-size: 14.5px;
+      margin-bottom: 14px;
+      color: var(--ink);
+    }
+
+    .quiz-opts {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .quiz-opt {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+      background: var(--panel2);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      transition: all 0.2s ease;
+    }
+
+    .quiz-opt:hover {
+      border-color: var(--accent);
+      background: rgba(224, 122, 75, 0.05);
+    }
+
+    .quiz-mark {
+      flex: 0 0 16px;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--line);
+      border-radius: 50%;
+    }
+
+    .quiz-opt.correct {
+      border-color: #3aa76d;
+      background: rgba(58, 167, 109, 0.12);
+    }
+
+    .quiz-opt.correct .quiz-mark {
+      border-color: #3aa76d;
+      background: #3aa76d;
+      position: relative;
+    }
+
+    .quiz-opt.correct .quiz-mark::after {
+      content: "✓";
+      position: absolute;
+      inset: 0;
+      color: #fff;
+      font-size: 10px;
+      line-height: 13px;
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .quiz-opt.wrong {
+      border-color: #d05a4e;
+      background: rgba(208, 90, 78, 0.1);
+    }
+
+    .quiz-opt.wrong .quiz-mark {
+      border-color: #d05a4e;
+      background: #d05a4e;
+      position: relative;
+    }
+
+    .quiz-opt.wrong .quiz-mark::after {
+      content: "✕";
+      position: absolute;
+      inset: 0;
+      color: #fff;
+      font-size: 9px;
+      line-height: 13px;
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .quiz-explain {
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      background: var(--code-bg);
+      border: 1px solid var(--line);
+      color: var(--ink-dim);
+    }
+
+    /* ==========================================
+       📜 수료증 모달 (Certificate)
+       ========================================== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: var(--panel);
+      border: 2px solid var(--accent2);
+      box-shadow: 0 0 30px rgba(201, 168, 106, 0.25);
+      border-radius: 20px;
+      padding: 24px;
+      width: 90%;
+      max-width: 580px;
+      position: relative;
+      text-align: center;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 12px;
+      right: 18px;
+      background: transparent;
+      border: none;
+      color: var(--ink-dim);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .cert-card {
+      background: radial-gradient(circle at center, #1b202e 0%, #0d0f17 100%);
+      border: 2px solid #d4af37;
+      padding: 40px 30px;
+      border-radius: 12px;
+      color: #f3f4f6;
+      position: relative;
+    }
+
+    .cert-corner {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #d4af37;
+    }
+
+    .c-tl { top: 8px; left: 8px; border-right: none; border-bottom: none; }
+    .c-tr { top: 8px; right: 8px; border-left: none; border-bottom: none; }
+    .c-bl { bottom: 8px; left: 8px; border-right: none; border-top: none; }
+    .c-br { bottom: 8px; right: 8px; border-left: none; border-top: none; }
+
+    .cert-univ {
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: #d4af37;
+      margin-bottom: 20px;
+    }
+
+    .cert-head {
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: 0.25em;
+      margin-bottom: 28px;
+      color: #fff;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.25);
+    }
+
+    .cert-main {
+      font-size: 0.92rem;
+      line-height: 1.8;
+      margin-bottom: 36px;
+      color: #d1d5db;
+    }
+
+    .cert-main strong {
+      color: #fff;
+      font-size: 1.05rem;
+    }
+
+    .cert-date {
+      font-size: 0.82rem;
+      color: var(--ink-dim);
+      margin-bottom: 8px;
+    }
+
+    .cert-sign {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #d4af37;
+    }
+
+    .cert-print-btn {
+      background: linear-gradient(135deg, var(--accent2), #b8974a);
+      color: #0e0f13;
+      font-weight: 800;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      margin-top: 16px;
+      width: 100%;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .cert-print-btn:hover {
+      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+    }
+
+    /* 실시간 3대 속성 체크리스트 */
+    .attribute-checklist {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .attr-item {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--line);
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 12.0px;
+      text-align: center;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .attr-item.active {
+      border-color: var(--color-accent);
+      background: rgba(16, 185, 129, 0.08);
+      color: var(--color-accent);
+    }
+
+    .attr-item.inactive {
+      border-color: #d05a4e;
+      background: rgba(208, 90, 78, 0.05);
+      color: #d05a4e;
+    }
+  </style>
+</head>
+<body>
+  
+  <div id="root"></div>
+
+  <!-- React App Code (Babel 빌드 연동) -->
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const CHAPTERS = [
+      {
+        id: 0,
+        title: '프롬프트 이해와 파라미터',
+        kicker: 'CHAPTER 00 · 핵심 엔진 지식',
+        desc: 'Prompt Architecture 백서 전체 슬라이드 내용을 빠짐없이 상세히 반영한 마스터 코스입니다.',
+        theory: `### 1. 프롬프트 엔지니어링의 본질 (인터페이스 엔지니어링)
+프롬프트 엔지니어링은 단순히 인공지능에게 질문을 던지는 잡무가 아닙니다. 거대언어모델(LLM) 시스템의 내부 메커니즘을 온전히 이해하고, 모델의 한계점과 잠재력을 명시적으로 파악하여 가장 최적의 아웃풋을 뽑아내는 일종의 **'인터페이스 엔지니어링(Interface Engineering)'**입니다. 
+
+### 2. 핵심 엔진 용어 사전
+*   **LLM (대규모 언어 모델)**: 방대한 텍스트 데이터를 사전 학습하여 문맥의 다음 가장 유력한 어휘를 찾아내는 확률론적 예측 엔진입니다.
+*   **Token (토큰)**: AI가 텍스트를 연산하고 인식하는 최소 기본 단위입니다. 한글은 영어와 달리 **1글자가 2~3개의 토큰**을 차지하므로 프롬프트 작성 시 미사여구를 소거하는 압축 기술이 비용 및 처리 속도 면에서 극히 권장됩니다.
+*   **Context Window (컨텍스트 윈도우)**: 모델이 한 번에 기억하고 소화할 수 있는 정보의 한계량입니다.
+*   **Hallucination (할루시네이션)**: AI가 사실에 기반하지 않는 잘못된 정보를 아주 유창하고 그럴듯하게 지어내는 환각 현상입니다.
+*   **Embedding (임베딩)**: 자연어 텍스트의 의미를 고차원 숫자 벡터로 변환하여 컴퓨터가 의미론적 유사성을 계산하도록 돕는 과정입니다.
+*   **In-context Learning (인-컨텍스트 러닝)**: 모델을 추가 파인튜닝(재학습)하지 않고 오직 프롬프트의 지시와 몇 가지 예제만으로 모델의 답변 스타일을 실시간 조율하는 기법입니다.
+
+### 3. 샘플링 파라미터 제어 (Sampling Parameters)
+*   **Temperature (온도)**: 출력 무작위성을 제어합니다. **낮을수록(0에 가까움)** 극단적인 사실/수학/코딩의 결정론적 답변을 출력하며, **높을수록(1에 가까움)** 참신하고 창의적인 아이디어를 출력합니다.
+*   **Top-K**: 가장 확률 분포가 높은 상위 K개의 단어 후보만 남기는 필터링 파라미터입니다.
+*   **Top-P**: 누적 확률 분포가 P% 내에 들어오는 토큰만 후보군으로 제한합니다.
+*   **Repetition Loop Bug**: 온도가 극단적으로 너무 낮으면 같은 말을 무한히 반복하고, 너무 높으면 엉뚱한 루프로 회귀해 횡설수설하는 버그가 발생합니다. (창의적 작업은 Temp 0.9 / Top-P 0.99, 논리적 코딩 작업은 Temp 0.1 / Top-P 0.9에서 설정을 권장합니다.)
+
+### 4. 프롬프트를 구성하는 5가지 필수 블록
+1.  **지시사항 (Instructions)**: 모델이 완수해야 하는 궁극적 미션.
+2.  **맥락 (Context)**: AI가 상황에 맞춰 대처하도록 제공하는 세부 배경 정보.
+3.  **역할 지정 (Role)**: 모델에게 특정 전문직 연차나 성격을 씌우는 페르소나.
+4.  **입력 & 출력 데이터 (Input/Output)**: 처리할 데이터와 마크다운, 표 등 결과 규격화.
+5.  **제약 조건 (Constraints)**: 절대 넘지 말아야 할 안전 및 가드레일 조건.
+
+### 5. 기초 기법과 구분자 사용법
+*   **Zero-shot**: 아무런 예제 없이 직접적으로 즉각 지시하는 방식입니다.
+*   **Few-shot**: 1~5개의 간단한 예시 입출력 구조를 먼저 제공하여 출력 포맷과 논리를 정형화시키는 방식입니다.
+*   **Delimiters(구분 기호)**: \`---\` 혹은 \`\`\` 등의 기호를 써서 질문 영역과 참고 데이터를 명확히 격리해 줌으로써 프롬프트 인젝션(해킹)과 맥락 혼란을 근원적으로 예방합니다.
+
+### 6. System, Context, Role 프롬프팅의 위계
+*   **System (시스템)**: 모델 전체 런타임에 작용하는 절대적인 가이드라인 규칙 (예: 항상 JSON으로만 대답해라).
+*   **Context (맥락)**: 현재 작업이 행해지는 배경 (예: 80년대 레트로 게임 포스팅 작성 중).
+*   **Role (역할)**: 말투와 성격 지배 (예: 킹콩처럼 말해라 vs 우아한 예술 해설가처럼 말해라).
+
+### 7. 고급 논리 아키텍처 (CoT, Self-Consistency, ToT, RAG, ReAct)
+*   **Chain-of-Thought (CoT)**: "단계별로 생각해 보자"는 문장을 심어 AI가 중간 계산/추론 노드를 직접 글로 쓰며 논리 오류와 연산 오차를 예방하게 만드는 사슬 기법입니다.
+*   **Self-Consistency (자기일관성)**: AI를 높은 온도(Temperature)에서 여러 경로로 동시에 독립 실행시킨 후 다수결 투표를 통해 가장 정합성이 높은 최종 결과물을 선별하는 투표 방식입니다.
+*   **사고의 나무 (Tree-of-Thought, ToT)**: 여러 추론 노드를 동시에 수형도로 펼쳐가며, 유망한 경로는 탐색하고 불필요한 경로는 조기에 가지치기하는 알고리즘적 프롬프팅입니다.
+*   **RAG (검색 증강 생성)**: 프롬프트 외부에 존재하는 문서나 사내 데이터를 실시간 검색해서 맥락에 붙여 넣어 할루시네이션을 원천 억제하는 기술입니다.
+*   **ReAct (Reason + Act)**: AI가 "생각 ➔ 행동(웹 검색 등 도구 실행) ➔ 관찰 ➔ 다음 생각" 구조를 무한 루프처럼 연쇄적으로 밟으며 외부 리소스와 결합해 스스로 임무를 완수하는 에이전틱 워크플로우의 모태입니다.
+
+### 8. 프롬프트 아키텍트의 블루프린트 템플릿 4종
+1.  **콘텐츠 생성**: 작성 대상을 [교사]로 제한, 어조 [정중히], 핵심포인트 3가지 지정.
+2.  **다면 분석**: [주제]에 대해 [관점 1, 2, 3]의 시각에서 주장, 근거, 한계를 명시해 결론 제시.
+3.  **문제 해결**: [문제 유형]을 도표나 수식을 써서 원리부터 차근차근 규명.
+4.  **비교 분석**: [항목 A]와 [항목 B]의 강약점을 주어진 기준에 맞게 비교해 적합한 옵션 제안.
+
+### 9. 도메인별 최적화 매트릭스
+*   **코딩**: 언어, 라이브러리, PEP 8 스타일 지정 필수. 예상 입출력 예외 처리 지정.
+*   **데이터 분석**: 데이터 구조, 변수, 사용할 통계 방법론, 경영진용 핵심 인사이트 3줄 요약.
+*   **마케팅/글쓰기**: 타겟 페르소나, 브랜드 톤, SEO 키워드, 소제목 및 글머리 기호, 행동 촉구(CTA) 문구 강제.
+*   **학술 연구**: 가설, 이론적 프레임워크, 논문 형식(APA 스타일 등) 및 문헌 검토 한계점 지목.
+
+### 10. 최적화를 위한 26가지 황금 원칙 요약
+*   **구조**: 한 번에 한 가지 지시, 중요 조건은 문서의 최상단이나 최하단에 배치.
+*   **제약**: 포맷(JSON, 표 등)을 엄격히 지정, AI가 하지 말아야 할 한계선 설정.
+*   **트러블슈팅**: AI 답변이 너무 뻔하면 톤앤매너와 배경 정보를 극대화해 다시 강조. 지시를 누락하면 순차적 대화 체인으로 분리 지시.
+
+### 11. 2026 AI 트렌드와 윤리
+*   텍스트뿐 아니라 오디오/비디오가 결합된 **멀티모달 프롬프팅**과 에이전트들이 서로 비평하며 피드백하는 **에이전트 워크플로우**가 미래 트렌드입니다.
+*   항상 AI를 절대 신뢰하지 않고 RAG나 다각도 교차 검증을 거치는 비판적 태도가 필요하며, 악의적인 프롬프트 인젝션 해킹 방어 지식(윤리 가드레일)이 필수적입니다.`,
+        
+        missions: [
+          {
+            subId: 1,
+            title: '경제적인 핵심 압축 질문 설계',
+            situation: '📢 문제: 토큰 소모량을 최소화하기 위해, AI에게 "2026년 트렌드 키워드를 알려줘"라는 요청을 미사여구 없이 **글자 수 10자 이하의 극단적인 단답식 핵심 지시어**로만 구성하여 작성해 보세요.',
+            concept: '토큰 절약을 위해 불필요한 보일러플레이트 조사와 수식어를 완전히 배제하는 압축 기법입니다.',
+            checkPassed: (text) => text.trim().length > 0 && text.trim().length <= 10,
+            feedbackText: (passed) => passed ? '⚡ 압축 토큰 최적화 완료! 실행하세요.' : '💡 팁: 불필요한 공백과 서술어를 다 지우고 10자 이하로 핵심만 쓰세요.',
+            badResponse: '🤖 [토큰 과소비 AI]: 질문해주셔서 감사합니다! 2026년도에 유행할 글로벌 비즈니스 트렌드 키워드가 궁금하시군요. 상세한 키워드 리스트를 분석하여 알려드리겠습니다.',
+            successResponse: '👑 [토큰 최적화 통과]\n"전송된 프롬프트가 단 2토큰 수준으로 극단적으로 압축되었습니다! 비용과 처리 성능 면에서 가장 이상적인 엔지니어링 형태입니다."',
+            answerExample: '2026 트렌드'
+          },
+          {
+            subId: 2,
+            title: '작업 성격에 따른 온도(Temperature) 지정',
+            situation: '📢 문제: "수학 연산 문제를 풀 예정이니 Temperature(온도) 파라미터를 0으로 설정해서 일관된 결과를 보장해 주세요."처럼 **"온도" 또는 "Temperature" 키워드와 숫자값("0" 또는 "0.9" 또는 "낮게")을 포함해 파라미터 규칙**을 지정하세요.',
+            concept: '작업의 성향(사실 지향 vs 창의 지향)에 따라 어울리는 온도 파라미터를 명시하는 훈련입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasTemp = val.includes('온도') || val.toLowerCase().includes('temperature');
+              const hasVal = ['0', '0.9', '낮게', '높게'].some(k => val.includes(k));
+              return hasTemp && hasVal;
+            },
+            feedbackText: (passed) => passed ? '⚡ 파라미터 조율 명령 인식! 실행 가능.' : '💡 팁: 문장에 "온도(혹은 Temperature)"와 조절 값("0" 혹은 "0.9")을 넣어주세요.',
+            badResponse: '🤖 [파라미터 미지정 AI]: 저는 항상 기본 온도값인 0.7 수준으로 설정되어 무난하고 평범한 대답만 뱉을 수 있습니다.',
+            successResponse: '⚖️ [파라미터 튜닝 완료]\n"Temperature: 0으로 지시되어 일관되고 사실적인 논리 모드로 진입합니다. 무작위 단어 선택이 억제되고 정확한 계산/코딩 추론이 준비되었습니다."',
+            answerExample: '수학 연산 문제를 풀 예정이니 Temperature(온도) 파라미터를 0으로 설정해서 일관된 결과를 보장해 주세요.'
+          },
+          {
+            subId: 3,
+            title: '할루시네이션(환각) 방어벽 프롬프트',
+            situation: '📢 문제: AI가 모르는 지식을 그럴듯하게 뻥쳐서 지어내는 현상을 막으려 합니다. **"출처" 또는 "모르면" 단어와 "팩트" 또는 "근거"를 포함해, 답변할 수 없는 질문은 모른다고 시인하게 만드는 제약 사항**을 내려 보세요.',
+            concept: '거짓 정보를 방지하고 정답의 확실성을 규제하기 위해 예외 케이스(Jailbreak/환각) 방어선을 세우는 훈련입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasSource = val.includes('출처') || val.includes('모르면') || val.includes('모른다고');
+              const hasFact = val.includes('팩트') || val.includes('근거') || val.includes('사실');
+              return hasSource && hasFact && val.length >= 8;
+            },
+            feedbackText: (passed) => passed ? '⚡ 할루시네이션 방어 프롬프트 인식! 실행하세요.' : '💡 팁: "모르면" 모른다 하고 "근거/팩트"에 기반하라는 지시를 포함하세요.',
+            badResponse: '🤖 [환각 증상 AI]: 네! 동덕여대 2026년 축제 초청 가수가 마이클 잭슨과 비틀즈로 확정되었습니다. (거짓 정보 창출)',
+            successResponse: '🛡️ [가드레일 방어 가동]\n"경고 가드레일이 활성화되었습니다. [AI 응답 변경: 주어진 문서에 해당 정보가 없거나 사실에 부합하지 않으므로 본 질문에는 답변할 수 없습니다. 사실 근거를 다시 확인해 주세요.] 할루시네이션 차단 완료!"',
+            answerExample: '주어진 내용에 없는 질문을 하거나 모르는 사실이 있다면 지어내지 말고 "모릅니다"라고 정확한 근거와 팩트에 기반해서 답변하세요.'
+          }
+        ],
+
+        quizQuestion: 'LLM 답변에서 같은 문장이 무한 반복 출력되는 Repetition Loop Bug(반복 루프 버그)가 발생할 때, 주로 조정해야 하는 핵심 파라미터는 무엇인가요?',
+        quizOptions: [
+          'Embedding (임베딩 벡터 차원 수)',
+          'Temperature (출력 온도 파라미터)',
+          'Context Window (텍스트 범위)',
+          'API Auth Key (인증 키)'
+        ],
+        quizAnswerIdx: 1,
+        quizExplain: '정답은 **Temperature (출력 온도)**입니다. 온도가 극단적으로 너무 낮으면 동일한 단어 시퀀스를 기계적으로 계속 선택하여 무한 루프 버그가 생기고, 너무 높으면 엉뚱한 이전 대화 노드로 회귀하여 같은 문체로 튕겨버립니다.'
+      },
+      {
+        id: 1,
+        title: '프롬프트 엔지니어링 개요',
+        kicker: 'CHAPTER 01 · 기본 요소',
+        desc: 'Google Cloud 가이드에 명시된 프롬프트 엔지니어링의 정의와 4대 필수 요소를 완벽히 학습합니다.',
+        theory: `### 1. 프롬프트 엔지니어링이란 무엇인가?
+Google Cloud 공식 백서에 따르면, **프롬프트 엔지니어링(Prompt Engineering)**은 거대언어모델(LLM)로부터 가장 정확하고 유용한 응답을 유도해 내기 위해 입력 프롬프트를 미세 조정하고 설계하는 기술적 학문입니다. 단순히 인공지능에게 질문을 던지는 것을 넘어, 모델의 가중치와 사전 학습 데이터를 효율적으로 탐색하도록 이끄는 '길잡이' 역할을 합니다.
+
+### 2. 프롬프트의 4대 핵심 구성 요소
+성공적인 비즈니스급 프롬프트를 설계할 때는 다음 4가지 요소가 조화롭게 내재되어 있어야 합니다:
+1. **지시사항 (Instruction)**: AI가 구체적으로 수행할 행동(요약하라, 분류하라, 작성하라 등).
+2. **정보 맥락 (Context)**: 수신 대상, 목표물, 톤앤매너 등 배경 지식.
+3. **입력 데이터 (Input Data)**: 실제로 AI가 처리해야 할 원본 데이터 또는 텍스트 본문.
+4. **출력 형식 (Output Format)**: 표(Table), JSON, 글머리 기호 등 최종 결과물의 구조 지정.`,
+        
+        missions: [
+          {
+            subId: 1,
+            title: '나의 전공과 프롬프트 학습 다짐',
+            situation: '📢 문제: 본인의 소중한 대학 전공(예: 콘텐츠디자인)을 AI에게 알리고, 이에 맞춰 오늘 3시간 수업 동안 배울 프롬프트 엔지니어링에 관한 다짐을 명확히 설명해 달라는 프롬프트를 작성하세요.',
+            concept: '나의 소속(맥락)과 배우고자 하는 다짐 목표(상황)를 AI에게 학습시키는 첫 걸음입니다.',
+            checkPassed: (text) => text.trim().length >= 10,
+            feedbackText: (passed) => passed ? '⚡ 다짐 텍스트 분석 성공! 실행 버튼을 누르세요.' : '💡 팁: 본인의 전공 상황과 포부를 10자 이상 텍스트로 적어 주세요.',
+            badResponse: '🤖 [일반 AI의 어색한 답변]\n"프롬프트 엔지니어링은 인공지능에게 프롬프트를 던져 원하는 대답을 얻는 기술을 일컫습니다. 열심히 공부해 보세요."',
+            successResponse: '👑 [갓벽 AI의 맞춤형 격려]\n"전공하신 분야의 무궁한 가치와 결합된다면 프롬프트 엔지니어링은 당신의 가장 강력한 지적 생산 도구가 될 것입니다. 1단계 첫 실습 퀘스트 통과를 축하합니다!"',
+            answerExample: '저는 콘텐츠디자인을 전공하는 대학생입니다. 오늘 3시간 동안 프롬프트 엔지니어링의 4대 구성 요소를 완벽히 마스터하여 제 전공 작품에 적용할 훌륭한 스토리 기획을 뽑아내겠습니다.'
+          },
+          {
+            subId: 2,
+            title: 'AI 콘텐츠 크리에이터의 수업 목표',
+            situation: '📢 문제: 미래의 훌륭한 AI 콘텐츠 크리에이터로서, AI에게 오늘 배울 수업 목표에 대해 간단한 요약을 명확히 지시하고 본인의 크리에이팅 목표를 10자 이상 덧붙여 보세요.',
+            concept: '지시어(요약하라)와 크리에이터로서의 역할(페르소나)을 섞는 초기 훈련입니다.',
+            checkPassed: (text) => text.trim().length >= 10,
+            feedbackText: (passed) => passed ? '⚡ 크리에이터 목표 조건 만족! 실행 가능합니다.' : '💡 팁: 크리에이터로서의 지향점이 담기도록 10자 이상 작성하세요.',
+            badResponse: '🤖 [일반 AI]: 목표를 요약하라는 지시를 확인했습니다. 최선을 다해 요약하겠습니다.',
+            successResponse: '👑 [갓벽 AI의 크리에이팅 로드맵]\n"목표를 확인했습니다. AI 기술을 예술 및 기획에 접목하는 우수한 콘텐츠 디렉터가 되기 위한 맞춤형 챕터 1-2 과제를 클리어하셨습니다. 다음 과제로 전진해 볼까요?"',
+            answerExample: 'AI 콘텐츠 크리에이터의 관점에서 오늘 진행되는 제미나이 프롬프트 마스터 클래스의 강의 주제를 요약해 주고, 제가 만들 3D 캐릭터 세계관을 더 고도화하기 위한 피드백을 주세요.'
+          },
+          {
+            subId: 3,
+            title: '새내기 대학생의 생산성 선언',
+            situation: '📢 문제: 새내기 대학생의 입장에서 AI에게 "앞으로 AI를 활용해 과제(리포트) 작성 속도를 2배 단축하겠다"는 도전적인 상황을 선언하고 이에 대한 구체적인 피드백을 요구하세요.',
+            concept: '새내기(맥락)와 리포트 작성 속도 개선(상황)을 조합해 AI에게 유용한 조언을 얻는 기법입니다.',
+            checkPassed: (text) => text.trim().length >= 10,
+            feedbackText: (passed) => passed ? '⚡ 생산성 선언 프롬프트 승인! 실행해 보세요.' : '💡 팁: 리포트 속도 단축 상황을 담아 10자 이상 프롬프트를 쳐주세요.',
+            badResponse: '🤖 [일반 AI]: 리포트 작성을 빠르게 하고 싶으시군요. 검색을 많이 활용하시면 속도가 빨라집니다.',
+            successResponse: '👑 [갓벽 AI의 리포트 생산성 가이드]\n"개인 학습 최적화를 위한 리포트 작성 팁을 추천합니다. 자료 조사, 아웃라인 빌드, 초안 검토 3단계 워크플로우에 따라 작업을 지시하면 시간 효율성이 200% 증가합니다. 챕터 1의 모든 실습 클리어!"',
+            answerExample: '저는 대학교 1학년 새내기 학생입니다. 이번 학기에 과제와 리포트 작성 속도를 2배로 단축하여 효율적으로 학업을 마치고 싶은데, 이를 달성하기 위한 구체적인 AI 연동 작성 루틴을 제안해 주세요.'
+          }
+        ],
+
+        quizQuestion: '다음 중 Google Cloud 백서에 명시된 프롬프트의 의미론적 4대 구성 요소에 해당하지 않는 것은 무엇인가요?',
+        quizOptions: [
+          '지시사항 (Instruction)',
+          '출력 형식 (Output Format)',
+          'API 인증 토큰 (API Auth Token)',
+          '정보 맥락 (Context)'
+        ],
+        quizAnswerIdx: 2,
+        quizExplain: '정답은 **API 인증 토큰**입니다. API 토큰은 네트워크 통신 및 권한 획득을 위한 도구일 뿐, 프롬프트의 의미론적 설계 요소가 아닙니다.'
+      },
+      {
+        id: 2,
+        title: '페르소나와 역할 부여',
+        kicker: 'CHAPTER 02 · Persona Setting',
+        desc: 'AI 모델에게 특정 연차의 직업적 페르소나를 씌워 답변의 수준을 전문가 급으로 통제합니다.',
+        theory: `### 1. 역할 설정(Role Prompting)의 의의
+AI에게 정체성을 부여하지 않으면, AI는 인터넷상의 온갖 잡다한 잡식성 데이터를 평균 내어 매우 뻔하고 무성의한 대답을 합니다. 반면에 **"당신은 20년 경력의 수의사입니다"** 혹은 **"소프트웨어 아키텍트입니다"**처럼 페르소나를 씌워주면, 그 직업군이 사용하는 전문 단어, 문체, 추론 알고리즘이 우선적으로 활성화됩니다.
+
+### 2. 구체적인 연차와 전문성 명시
+단순히 "변호사로서 대답해줘"보다 "대한변호사협회 소속 10년 차 부동산 전문 변호사로서"와 같이 구체적인 전문 단체나 연차를 제시할수록 답변의 엄밀성이 기하급수적으로 높아집니다.`,
+        
+        missions: [
+          {
+            subId: 1,
+            title: '반려견 사료 급여 훈련',
+            situation: '📢 문제: 내 귀여운 포메라니안 강아지가 요즘 사료를 잘 안 먹습니다. 단순 AI 비서 대신 전문적인 배식 가이드를 얻기 위해 **"수의사" 또는 "사육사" 역할을 부여하여 올바른 사료 급여법**을 요구하는 프롬프트를 작성하세요.',
+            concept: '수의사(페르소나) 단어를 포함하여 전문적 의견을 강제해 보는 훈련입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              return ['수의사', '사육사', '훈련사', '수의사로서'].some(k => val.includes(k)) && val.length >= 8;
+            },
+            feedbackText: (passed) => passed ? '⚡ 수의사 페르소나 식별! 실행해 보세요.' : '💡 팁: 문장에 "수의사" 또는 "사육사" 역할을 명확하게 포함해 주세요.',
+            badResponse: '🤖 [바보 AI]: 사료는 마트에서 파는 것 중 맛있는 걸로 하루 두 번 적당히 밥그릇에 가득 담아 주시면 강아지가 왈왈 짖으며 좋아해요!',
+            successResponse: '⚖️ [수의사 AI의 전문 답변]\n"안녕하세요, 반려동물 수의사 AI입니다. 강아지의 사료 급여량은 품종, 성장 단계(월령), 몸무게를 기준으로 하루 에너지 요구량(RER)을 먼저 산출해야 합니다. 성장기 자견(생후 6개월 이하)은 소화기가 취약하므로 하루에 4회로 분할 급여해야 합니다."',
+            answerExample: '당신은 20년 경력의 숙련된 수의사입니다. 저희 집 포메라니안이 최근 입맛을 잃었는데, 건강 상태와 견종 특성에 맞는 안전하고 균형 잡힌 사료 급여 방식과 주의할 점을 의학적으로 상담해 주세요.'
+          },
+          {
+            subId: 2,
+            title: '카페 인테리어 세금 조언',
+            situation: '📢 문제: 이번에 동덕여대 근처에 예쁜 카페 창업을 준비 중인데, 인테리어 비용의 부가세 환급 문제가 고민입니다. **"세무사" 또는 "회계사" 역할을 부여하여 절세 방안**을 자문하는 프롬프트를 작성해 보세요.',
+            concept: '세무사(페르소나) 단어를 사용하여 전문 세무 상담 톤앤매너를 유도하는 훈련입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              return ['세무사', '회계사', '세무'].some(k => val.includes(k)) && val.length >= 8;
+            },
+            feedbackText: (passed) => passed ? '⚡ 세무 전문가 페르소나 식별! 실행 가능.' : '💡 팁: 질문에 "세무사" 또는 "회계사" 직종을 정확히 포함하세요.',
+            badResponse: '🤖 [일반 AI]: 세금은 세무서에 문의하셔야 합니다. 세금 환급은 홈택스에서 신고서를 작성해 내시면 완료됩니다.',
+            successResponse: '⚖️ [세무사 AI의 절세 자문 결과]\n"안녕하십니까, 개인사업 창업 전문 세무사 AI입니다. 인테리어 비용 부가가치세(10%) 환급을 받기 위해서는 반드시 사업자등록번호가 기재된 세금계산서, 사업용 신용카드 결제분, 또는 지출증빙용 현금영수증을 수취하셔야 합니다. 이를 \'적격증빙\'이라 일컬으며..."',
+            answerExample: '당신은 신규 자영업자 전문 세무사입니다. 카페 창업 인테리어 시공을 할 때, 부가가치세를 세법에 따라 환급받기 위해 공사 계약 전후로 확보해야 하는 필수 적격증빙의 종류와 주의사항을 세무사 입장에서 조언해 주세요.'
+          },
+          {
+            subId: 3,
+            title: '코딩 과제 알고리즘 병목 해결',
+            situation: '📢 문제: 파이썬 코딩 과제를 하던 중 반복문 연산 속도가 너무 느려 계속 시간 초과 에러가 납니다. **"개발자" 또는 "엔지니어" 또는 "아키텍트" 역할을 AI에게 부여하여 성능 최적화 코드**를 제공받는 프롬프트를 작성하세요.',
+            concept: '기술 전문가(엔지니어 페르소나)를 씌워 소스코드의 구조적 해결책을 도출하게 합니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              return ['개발자', '엔지니어', '아키텍트', '프로그래머'].some(k => val.includes(k)) && val.length >= 8;
+            },
+            feedbackText: (passed) => passed ? '⚡ 엔지니어 페르소나 식별! 실행해 보세요.' : '💡 팁: "개발자"나 "엔지니어" 등의 코딩 전문가 페르소나를 부여해 보세요.',
+            badResponse: '🤖 [일반 AI]: 코드가 느리면 컴퓨터를 더 좋은 것으로 바꾸거나 연산 데이터의 크기를 인위적으로 축소해 보세요.',
+            successResponse: '💻 [수석 소프트웨어 아키텍트 AI의 답변]\n"반복문 내부의 탐색 병목을 O(N^2)에서 O(N)으로 단축하기 위한 해시테이블 최적화 가이드를 제시합니다. 파이썬의 dict 혹은 set 구조를 활용하여 선형 탐색을 대체하면 실행 시간이 최대 100배 단축됩니다. 2챕터 모든 실습 클리어!"',
+            answerExample: '당신은 구글 출신의 수석 시스템 개발자입니다. 파이썬 다중 반복문에서 발생하는 극심한 연산 지연을 최적화하기 위해, 리스트 검색을 해시 셋 구조로 변경하는 고속 알고리즘 리팩토링 사례를 명쾌하게 작성해 주세요.'
+          }
+        ],
+
+        quizQuestion: 'AI에게 페르소나(역할)를 씌울 때 가장 바람직한 작성 요령은 무엇인가요?',
+        quizOptions: [
+          '단순히 "똑똑한 사람"이라고 묘사한다.',
+          '"10년 차 소아과 전문의"처럼 세부 분야와 연차를 구체적으로 묘사한다.',
+          '영어로만 지시한다.',
+          '반말 and 욕설을 섞어 기를 죽인다.'
+        ],
+        quizAnswerIdx: 1,
+        quizExplain: '정답은 **세부 분야와 연차를 구체적으로 묘사하는 것**입니다. 구체적인 페르소나는 모델이 특정 학술/업무 도메인의 엄밀한 추론 상태를 유지하게 합니다.'
+      },
+      {
+        id: 3,
+        title: '배경 맥락과 어조 조율',
+        kicker: 'CHAPTER 03 · Context & Tone',
+        desc: '수신 대사와의 사제관계나 독감 등의 배경 상황을 제공하여 공손하고 올바른 서신 초안을 유도합니다.',
+        theory: `### 1. 맥락(Context) 설정의 효과
+LLM은 자체적으로 사회적 분위기를 독착적으로 읽지 못합니다. 이메일을 쓰게 할 때, 받는 이가 "동아리 친구"인지 "대학교수님"인지에 따라 작성 톤앤매너가 극단적으로 바뀌어야 합니다. 
+
+### 2. 상황적 제약 조건 제공
+"독감 확진 판정으로 등교가 어려운 상황"과 같이 현재 벌어진 배경 맥락과 문제 상황을 명료하게 묘사하여, 불필요하게 AI가 지어내서 오해를 불러일으킬 여지(할루시네이션)를 철저히 방어해야 합니다.`,
+        
+        missions: [
+          {
+            subId: 1,
+            title: '교수님 대상 결석 메일 대필',
+            situation: '📢 문제: 갑작스러운 독감에 걸려 격리 권고를 받았습니다. AI콘텐츠제작 담당 **교수님(수신자)께 정중하게 사정을 설명하고 병결 출석 인정을 요청**하는 결석계 메일 초안을 작성하도록 요구하는 프롬프트를 설계하세요.',
+            concept: '교수님(대상 맥락)과 독감/결석(문제 상황)이 명시된 격식 메일 설계 훈련입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasProf = val.includes('교수');
+              const hasReason = ['독감', '병결', '결석', '아파서'].some(k => val.includes(k));
+              return hasProf && hasReason && val.length >= 10;
+            },
+            feedbackText: (passed) => passed ? '⚡ 메일 맥락 포착 완료! 실행해 보세요.' : '💡 팁: "교수님" 수신자와 "독감/결석" 등의 핵심 단어를 함께 작성하세요.',
+            badResponse: '🤖 [비서 AI]: 교수 안녕. 나 오늘 몸살이 심해서 결석할게요. 과제는 대충 담주에 낼게요. 수고하셈.',
+            successResponse: '📧 [갓벽 AI의 결석계 메일]\n"제목: [병결 신청] AI콘텐츠제작 수업 결석 승인의 건 (학번: 20261234 홍길동)\n\n존경하는 교수님, 안녕하십니까. 다름이 아니라 어제 저녁 갑작스러운 고열로 응급실을 내원하여 A형 독감 확진 판정을 받았습니다. 타인 전격 격리 권고로 인해 부득이 금일 대면 수업에 불참하게 되었음을 고개 숙여 양해 부탁드립니다. 진단서를 첨부하오니 출석 인정 검토를 부탁드립니다. 감사합니다."',
+            answerExample: 'AI콘텐츠제작 담당 교수님께 드릴 이메일을 작성해줘. 어제 밤 A형 독감 판정을 받아 부득이하게 이번 주 수업에 결석하며, 병원 진료확인서를 유첨하오니 출석을 인정해 달라는 정중한 어조의 결석계 초안을 작성해줘.'
+          },
+          {
+            subId: 2,
+            title: '해외 배송 사고 영문 사과장',
+            situation: '📢 문제: 해외 고객에게 보낸 도자기 컵이 배송 중 파손되었고 배송도 2주 늦어졌습니다. **해외 "고객"에게 전액 "환불" 혹은 재배송을 정중히 사과하며 제안하는 격식 있는 영문 메일** 작성을 지시하세요.',
+            concept: '글로벌 고객(대상)과 배송 사고(상황)에 대응하는 고도화된 비즈니스 톤앤매너 프롬프팅입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasTarget = ['고객', '바이어', '소비자'].some(k => val.includes(k));
+              const hasAction = ['환불', '사과', '지연', '배송'].some(k => val.includes(k));
+              const hasEng = ['영어', '영문', 'English'].some(k => val.includes(k));
+              return hasTarget && hasAction && hasEng && val.length >= 10;
+            },
+            feedbackText: (passed) => passed ? '⚡ 글로벌 CS 맥락 충족! 실행해 보세요.' : '💡 팁: "고객", "환불/사과" 및 "영문/영어" 조건이 들어가야 합니다.',
+            badResponse: '🤖 [일반 AI]: Dear customer, your cup was broken. We are sorry for delay. We can refund your money.',
+            successResponse: '📧 [갓벽 AI의 영문 사과 이메일]\n"Subject: Sincere Apologies for Order Damage & Delivery Delay\n\nDear Customer,\nWe are writing to deeply apologize for the damage of your ceramic cup during transit. We have processed a 100% full refund to your card. Should you wish, we can also dispatch a new replacement today free of charge. Thank you for your understanding. Sincerely, CS Lead."',
+            answerExample: '도자기 컵 배송 중 파손 및 2주 지연 사고를 겪은 해외 바이어 고객에게 보내는 비즈니스 사과 메일을 영어로 작성해줘. 100% 환불 처리 또는 즉각적인 재배송 옵션을 제시하며 깊은 사과를 담은 정중한 문장이어야 해.'
+          },
+          {
+            subId: 3,
+            title: '신입 사원 샌드위치 피드백',
+            situation: '📢 문제: 동아리 신입 부원이 작성한 기획서에 보완점이 너무 많습니다. 사원의 기를 살려주며 의사소통하기 위해 **"칭찬"으로 시작해 "개선"점을 짚고 "격려"로 끝맺는 샌드위치 면담법 피드백** 작성을 지시하세요.',
+            concept: '상대방의 기분(맥락)을 존중하면서도 기획서의 데이터 보완(상황)을 명확히 하는 피드백 유도 기법입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasTarget = ['신입', '사원', '부원', '후배'].some(k => val.includes(k));
+              const hasKeys = ['칭찬', '개선', '격려', '샌드위치'].some(k => val.includes(k));
+              return hasTarget && hasKeys && val.length >= 10;
+            },
+            feedbackText: (passed) => passed ? '⚡ 피드백 맥락 식별 완료! 실행해 보세요.' : '💡 팁: "신입", "칭찬", "개선", "격려" 등의 3단계 핵심 소통 단어를 섞어 주세요.',
+            badResponse: '🤖 [일반 AI]: 신입사원님 기획서 데이터가 다 비어있어서 다시 작성해 주셔야 합니다. 다음 주 월요일까지 보강하세요.',
+            successResponse: '👥 [갓벽 AI의 샌드위치 피드백 가이드]\n"1단계 (Praise): 기획서의 독창적인 디자인 뷰와 콘셉트 설정이 매우 인상적입니다.\n2단계 (Improvement): 다만 시장 실증 분석 데이터가 부족해 보완이 필요해 보입니다.\n3단계 (Encouragement): 신입사원님의 뛰어난 기획력이라면 완벽히 보완할 것이라 믿습니다. 적극 응원합니다. 3챕터 모든 실습 클리어!"',
+            answerExample: '신입 동아리 부원이 쓴 마케팅 제안서에 데이터 보완 사항이 많아 피드백을 하려 해. 샌드위치 피드백 화법에 맞게, 1단계 제안서의 참신함 칭찬, 2단계 데이터 근거 보강 및 개선 지시, 3단계 다음 주의 성장을 격려하는 멘트로 나누어 정리해줘.'
+          }
+        ],
+
+        quizQuestion: '이메일 작성 프롬프트에 "수신자가 대학교수님"이라는 맥락(Context)을 추가했을 때 AI 결과에 나타나는 변화는 무엇인가요?',
+        quizOptions: [
+          '메일의 전송 속도가 빨라진다.',
+          '존댓말과 격식 체를 사용하는 등 사회적 관계에 부합하는 어조가 형성된다.',
+          '메일 내에 영어 단어가 강제된다.',
+          '아무런 변화도 일어나지 않는다.'
+        ],
+        quizAnswerIdx: 1,
+        quizExplain: '정답은 **사회적 관계에 부합하는 격식 있는 어조가 형성된다**입니다. 수신자의 맥락 정보는 문장 내 단어 선택 확률 분포를 격식 있는 톤으로 강하게 변화시킵니다.'
+      },
+      {
+        id: 4,
+        title: '명확한 지시와 서식화',
+        kicker: 'CHAPTER 04 · Instruction & Format',
+        desc: '게으른 AI를 다스리기 위해 3가지 요점이나 마크다운 표(Table)로 출력을 강력히 제약합니다.',
+        theory: `### 1. 모호한 지시는 모호한 답변을 낳는다
+대다수의 사용자가 "이거 대충 요약해줘"라고 짧게 질문합니다. 이 경우 AI는 임의의 판단으로 불필요하게 긴 보고서 형식이나, 너무 짧은 대답을 내놓습니다. **"핵심 3가지로 글머리 기호(•)를 사용해 정리하라"**와 같이 정량적 조건을 명명해야 합니다.
+
+### 2. 출력 형식의 통제
+엑셀이나 문서에 바로 이식할 수 있도록 **"마크다운 표(Table) 형태로 출력하라"**거나 **"JSON 형식으로 출력하라"**는 명확한 Format 지정은 추가 편집 시간(사후 가공)을 극적으로 줄여줍니다.`,
+        
+        missions: [
+          {
+            subId: 1,
+            title: '신기술 트렌드 3대 요점 요약',
+            situation: '📢 문제: 전고체 배터리 동향 신기술 보고서 요약본이 필요합니다. 바쁜 임원진을 위해 보고서 내용을 **"3가지" 핵심 요점으로 "글머리" 기호(•)를 써서 요약**해 달라고 명령을 내리는 프롬프트를 설계하세요.',
+            concept: '정량 조건(3가지)과 출력 포맷(글머리 기호)을 지시사항에 강제하는 훈련입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasCount = ['3가지', '세 가지', '3개'].some(k => val.includes(k));
+              const hasFormat = ['글머리', '기호', '•', '요점'].some(k => val.includes(k));
+              return hasCount && hasFormat && val.length >= 8;
+            },
+            feedbackText: (passed) => passed ? '⚡ 정량 요약 지시 승인! 실행하세요.' : '💡 팁: 지시 문구에 "3가지"와 "글머리" 기호 조건을 명시해 주세요.',
+            badResponse: '🤖 [일반 AI]: 이 보고서는 배터리의 미래 성장을 분석하고 UAM 교통 구조의 변혁을 다루는 매우 유익한 학술 분석 보고서입니다.',
+            successResponse: '📝 [갓벽 AI의 3줄 요약 결과]\n- • **전고체 배터리 상용화**: 1회 충전당 주행 거리 800km 돌파.\n- • **UAM 도심 셔틀 개설**: 주요 항공 거점 확보 및 배터리 충전 단축.\n- • **AI 스마트 배터리 탑재**: 실시간 발열 자가 통제 기능 확보.',
+            answerExample: '전고체 배터리 미래 기술 트렌드 보고서 원본을 바탕으로, 바쁜 임원 보고용 요약본을 작성해줘. 단, 핵심 사항 3가지 요점만을 골라 글머리 기호(•)를 앞에 붙여서 대답해야 해.'
+          },
+          {
+            subId: 2,
+            title: '품목 매출 실적 마크다운 표 변환',
+            situation: '📢 문제: 쇼핑몰의 품목 매출액 수치가 복잡하게 뒤엉켜 있습니다. 엑셀에 바로 붙여 넣을 수 있도록 **"표" 또는 "Table" 또는 "마크다운" 형태로 매출액과 품목 실적을 구분해 출력**하라는 프롬프트를 작성하세요.',
+            concept: '텍스트가 아닌 2차원 표(Table)로 출력 형식을 규제하여 시인성을 높이는 과정입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              return ['표', 'Table', '테이블', '테이블로', '표로'].some(k => val.includes(k)) && val.length >= 6;
+            },
+            feedbackText: (passed) => passed ? '⚡ 표 서식 지시 성공! 실행하세요.' : '💡 팁: "표"나 "Table" 단어를 포함해 구조화된 서식 출력을 명령하세요.',
+            badResponse: '🤖 [일반 AI]: 헤드폰은 42개 팔아서 1천만 원이고 충전기는 85개 팔았으며 스탠드는 12개 팔았습니다.',
+            successResponse: '📊 [갓벽 AI의 매출 표 출력]\n"| 순위 | 품목 명 | 수량 | 총 매출액 |\n| :---: | :--- | :---: | :---: |\n| 1 | 무선 헤드폰 Pro | 42개 | ₩10,500,000 |\n| 2 | 미니 고속 충전기 | 85개 | ₩2,550,000 |\n| 3 | 스마트폰 스탠드 | 12개 | ₩360,000 |"',
+            answerExample: '쇼핑몰 품목 매출 기록을 표 형식으로 가시화해줘. 품목 명, 판매 수량, 매출 합계를 열로 가지는 마크다운 표(Table) 형태로 최종 변환해 주어야 엑셀에 붙여넣기 쉽습니다.'
+          },
+          {
+            subId: 3,
+            title: '신제품 텀블러 상세페이지 훅 도출',
+            situation: '📢 문제: 48시간 보온보냉 친환경 비건 텀블러가 크라우드 펀딩을 통해 런칭됩니다. 상세페이지 상단에 들어갈 **"강렬한 메인 훅 타이틀 1개"와 "3가지 강점"을 명확히 구분해서 도출**해 달라고 프롬프트를 설계하세요.',
+            concept: '카피라이팅 작업에서 제목(1개)과 상세 특징(3가지)을 구분하는 레이아웃 통제 훈련입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasTitle = ['타이틀', '훅', '카피', '제목'].some(k => val.includes(k));
+              const hasCount = ['3가지', '세 가지', '3개'].some(k => val.includes(k));
+              return hasTitle && hasCount && val.length >= 8;
+            },
+            feedbackText: (passed) => passed ? '⚡ 세일즈 지시 요건 충족! 실행해 보세요.' : '💡 팁: "타이틀/훅" 조건과 특징 "3가지" 조건을 문장에 골고루 넣으세요.',
+            badResponse: '🤖 [일반 AI]: 대나무 비건 텀블러는 독성이 없고 보온 보냉 성능이 좋으니 많은 후원 바랍니다.',
+            successResponse: '🛍️ [갓벽 AI의 세일즈 카피]\n"메인 카피: 얼음이 이틀 뒤에도 살아있다? 첫 번째 48시간 비건 텀블러!\n3대 특장점:\n1. 48시간 온도 홀딩 기술\n2. 100% 대나무 천연 섬유 독성 제로\n3. 미니멀리즘 감성 파스텔 핏. 4챕터 모든 실습 클리어!"',
+            answerExample: '신제품 친환경 비건 텀블러의 상세페이지 카피를 써주세요. 읽는 이의 주의를 사로잡을 강렬한 메인 훅 타이틀 1개와 제품의 성능을 설명하는 핵심 강점 3가지를 명확히 구분해서 줄 바꿈 형식으로 정리해줘.'
+          }
+        ],
+
+        quizQuestion: 'AI 답변을 엑셀 시트에 즉시 복사하여 붙여넣기 가장 알맞은 마크다운 서식 조건은 무엇인가요?',
+        quizOptions: [
+          '일반 단락 요약',
+          '마크다운 표 (Table) 형식',
+          '줄바꿈 없는 한 줄 평',
+          '블록 인용구'
+        ],
+        quizAnswerIdx: 1,
+        quizExplain: '정답은 **마크다운 표 (Table) 형식**입니다. 마크다운 표는 엑셀, 스프레드시트 등에 그대로 복사-붙여넣기 하면 열과 행이 자동으로 완벽 분할 이식됩니다.'
+      },
+      {
+        id: 5,
+        title: 'Chain-of-Thought 논리 설계',
+        kicker: 'CHAPTER 05 · Chain-of-Thought',
+        desc: '논리적 오류와 수학적 오차를 소거하기 위해 AI에게 "단계별로 생각하라"고 유도하는 추론 기법을 학습합니다.',
+        theory: `### 1. 생각의 사슬 (Chain-of-Thought, CoT)의 가치
+거대언어모델(LLM)은 텍스트 생성 특성상 복잡한 논리/수학 문제를 만났을 때, 첫 대답 단어를 성급하게 뱉으려다 전체 연산을 완전히 망가뜨리는 치명적인 결함이 있습니다. 
+
+### 2. "단계별로 생각하기"
+프롬프트 본문에 **"단계별로 차근차근 나누어 생각해 보자(Let's think step by step)"**라는 문장을 넣어주면, AI는 직관적인 단정 대신 내부적 '생각의 사슬' 경로를 중간 문장들로 풀어놓게 됩니다. 이 사소한 추론 단계를 출력하게 유도하는 것만으로 수학 및 논리 연산의 정답률이 20%에서 최대 85%까지 수직 급상승합니다.`,
+        
+        missions: [
+          {
+            subId: 1,
+            title: '복잡한 수학 사칙연산 차근차근 풀기',
+            situation: '📢 문제: "배가 25 상자 있고, 상자당 사과가 8개씩 들어있는데, 그중 12개를 친구에게 주고 남은 개수를 구하라"는 질문을 AI가 실수 없이 풀도록 **"단계별로" 혹은 "차근차근" 또는 "Step" 단어를 포함해 논리적 연산 경로**를 지시해 보세요.',
+            concept: 'CoT 추론을 유도하는 기초 명령 키워드를 프롬프트에 주입하는 연습입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              return ['단계별', '차근차근', 'step'].some(k => val.toLowerCase().includes(k)) && val.length >= 8;
+            },
+            feedbackText: (passed) => passed ? '⚡ CoT 유도 키워드 감지! 실행해 보세요.' : '💡 팁: "단계별로" 혹은 "차근차근" 단어를 훈수에 녹여 작성하세요.',
+            badResponse: '🤖 [성급한 AI]: 상자가 25개 있으므로 최종 남은 배의 개수는 대략 195개입니다. (연산 오차 발생)',
+            successResponse: '🧠 [CoT 추론 작동 결과]\n"1단계: 전체 사과의 총 개수 연산 -> 25 상자 x 상자당 8개 = 200개\n2단계: 친구에게 준 개수 제외 -> 200개 - 12개 = 188개\n최종 정답: 남은 개수는 188개입니다."',
+            answerExample: '배 상자 연산 문제를 풀 때, 실수를 방지하기 위해 단계별로 차근차근 식을 나누어서 최종 정답을 도출해 주세요.'
+          },
+          {
+            subId: 2,
+            title: '사회적 갈등 이슈의 중립적 인과 요약',
+            situation: '📢 문제: "원자력 발전소 증설 논란"에 대해 찬성과 반대 입장이 팽팽히 맞섭니다. 어느 한쪽으로 치우치지 않게 **"찬성 측" 논거와 "반대 측" 논거를 각각 차례대로 나열하여 최종 결론**을 단계적으로 유도하도록 지시해 보세요.',
+            concept: '복잡한 사회/윤리적 화두에 대해 분석 과정을 단계별로 분할하여 서술하게 통제합니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              return val.includes('찬성') && val.includes('반대') && val.length >= 10;
+            },
+            feedbackText: (passed) => passed ? '⚡ 다각도 인과관계 분석 승인! 실행 가능.' : '💡 팁: 찬반 양측의 의견을 단계적으로 서술하라는 조건을 명시하세요.',
+            badResponse: '🤖 [일반 AI]: 원자력 발전은 위험할 수 있고 안전 문제도 있어 추가 건설에 대해서는 신중한 접근이 필요합니다.',
+            successResponse: '🧠 [CoT 중립 요약 결과]\n"1단계 (찬성 측 입장): 친환경 저탄소 고효율 기저 전력 확보 및 산업용 전력 공급 안정성.\n2단계 (반대 측 입장): 방사성 폐기물 처리장의 영구 미확보 및 잠재적 사고 리스크.\n최종 결론: 경제적 이익과 사회적 위험의 합의점이 필요합니다."',
+            answerExample: '원자력 발전 증설에 관하여 찬성 측 입장과 반대 측 입장의 대표적인 논거를 단계별로 나누어 서술해 주고 중립적 어조로 마무리해줘.'
+          },
+          {
+            subId: 3,
+            title: '오류 프롬프트 논리 디버깅',
+            situation: '📢 문제: "우리 회사 마케팅 효율이 떨어진 원인을 바로 알려줘"라는 모호한 프롬프트는 AI의 헛소리를 만듭니다. AI가 **"원인 분석", "해결 대안", "실행 로드맵"을 3단계로 나누어 차례대로 디버깅 보고서**를 쓰도록 지시해 보세요.',
+            concept: '질문을 고도화하여 AI가 분석부터 기획까지 단계별 연쇄 알고리즘을 밟게 만듭니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasSteps = ['단계', '원인', '대안', '분석'].some(k => val.includes(k));
+              return hasSteps && val.length >= 10;
+            },
+            feedbackText: (passed) => passed ? '⚡ 디버깅 체인 구성 완료! 실행하세요.' : '💡 팁: 원인, 대안, 로드맵을 구분해 단계별 보고를 지시하세요.',
+            badResponse: '🤖 [일반 AI]: 광고 효율이 떨어진 이유는 최근 트렌드에 뒤처졌거나 타겟팅이 매력적이지 않기 때문일 수 있습니다.',
+            successResponse: '🧠 [디버깅 CoT 의사결정 보고]\n"1단계 (원인 분석): 최근 CPC 단가 상승 및 광고 소재 노후화.\n2단계 (해결 대안): UGC(사용자 제작 콘텐츠) 위주 숏폼 동영상 광고 교체.\n3단계 (실행 로드맵): 1주차 매체 테스트 -> 2주차 스케일업 실행. 5챕터 모든 실습 클리어!"',
+            answerExample: '우리 브랜드의 광고 효율 저하 문제를 진단하려 합니다. 성급한 조언 대신, 1단계 하락의 핵심 원인 분석, 2단계 개선을 위한 창의적 대안 제안, 3단계 즉각 실행 로드맵 순서로 단계별 보고를 작성하세요.'
+          }
+        ],
+
+        quizQuestion: '생각의 사슬(Chain-of-Thought) 기법이 복잡한 계산이나 논리 추론에서 지니는 핵심 의의는 무엇인가요?',
+        quizOptions: [
+          '데이터 크기를 실시간 압축한다',
+          'AI가 중간 추론 경로를 명시적으로 출력하게 유도하여 연산의 실수와 환각을 극적으로 방지한다',
+          '영어만 쓰도록 어휘를 통제한다',
+          '사용자의 대화 비용을 아껴준다'
+        ],
+        quizAnswerIdx: 1,
+        quizExplain: '정답은 **중간 추론 경로를 출력해 연산 오차와 환각을 방지하는 것**입니다. CoT는 내부 토큰 계산의 시퀀스를 자연스럽게 연장하여 논리의 엄밀성을 보장합니다.'
+      },
+      {
+        id: 6,
+        title: '예시 기반의 Few-shot 러닝',
+        kicker: 'CHAPTER 06 · Few-shot Prompting',
+        desc: 'promptingguide.ai 명세의 핵심인 Few-shot 기법을 활용해, 감정 판독을 1단어로 완벽 통제합니다.',
+        theory: `### 1. Few-shot Prompting이란?
+**Few-shot (퓨샷)** 프롬프팅은 자연어 설명보다 강력한 '작업 예시(Shot)'들을 프롬프트에 직접 몇 쌍 적어주어 AI를 순간 훈련시키는 기법입니다. 자연어 지시만 내릴 경우 AI는 자꾸 불필요한 사설을 늘어놓습니다.
+
+### 2. 퓨샷 프롬프트의 기본 구조
+아래와 같이 입력과 출력의 예제를 대조적으로 몇 쌍 배치합니다:
+\`\`\`text
+리뷰: 배송이 너무 빨라요 -> 감정: 긍정
+리뷰: 포장이 뜯겨왔네요 -> 감정: 부정
+
+분석할 리뷰: 액정이 깨졌어요 -> 감정:
+\`\`\`
+이처럼 화살표나 기호로 관계를 지정해 두면, AI는 쓸데없는 서론/결론을 싹 지우고 오직 예시 포맷 그대로 '부정' 한 단어만 반환합니다.`,
+        
+        missions: [
+          {
+            subId: 1,
+            title: '고객 리뷰 1단어 감정 판독',
+            situation: '📢 문제: 수만 개의 쇼핑몰 후기 중, AI가 구구절절 해설을 뱉지 않고 **오직 "긍정" 또는 "부정" 단어 1개만 출력하도록 화살표 기호("->")와 예시 2쌍**을 포함한 Few-shot 프롬프트를 설계하세요.',
+            concept: '예제 패턴을 통해 자연어 설명이 아닌 구조적 제약으로 1단어 판독을 완성시킵니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasArrow = ['->', ':', '=>'].some(k => val.includes(k));
+              return val.includes('긍정') && val.includes('부정') && hasArrow && val.length >= 20;
+            },
+            feedbackText: (passed) => passed ? '⚡ Few-shot 감정 훈련 승인! 실행하세요.' : '💡 팁: "긍정", "부정" 예시 단어와 화살표 "->"를 섞어 20자 이상 퓨샷을 구성해 주세요.',
+            badResponse: '🤖 [설명충 AI]: 해당 리뷰 문장은 제품의 배송 지연 및 손상에 분노하고 있으므로 감정 사전을 대조한 결과 최종 부정 톤으로 분류됩니다.',
+            successResponse: '🧠 [Few-shot 감정 분류 결과]\n"입력: 액정이 깨져서 왔어요. 환불해주세요.\n출력: 부정"',
+            answerExample: '리뷰: 가볍고 화질이 너무 좋습니다 -> 긍정\n리뷰: 소음이 심하고 고장이 잦네요 -> 부정\n리뷰: 사자마자 깨져서 왔어요 -> '
+          },
+          {
+            subId: 2,
+            title: '영단어 1대1 번역 포맷 학습',
+            situation: '📢 문제: 영어 단어를 입력하면 한글 뜻을 반환하되, 사전식 설명 없이 **오직 "Apple: 사과"처럼 콜론(":")이나 기호를 쓴 예시 3쌍**을 포함한 Few-shot 번역 프롬프트를 빌드하세요.',
+            concept: '콜론(:) 기호 관계의 3개 예제(Shot)를 주어 AI의 번역 포맷을 정형화하는 훈련입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasColon = val.includes(':') || val.includes('->');
+              return hasColon && val.length >= 20;
+            },
+            feedbackText: (passed) => passed ? '⚡ Few-shot 번역 구조화 승인! 실행 가능.' : '💡 팁: "영어단어 : 뜻" 형태의 예시 3개를 입력창에 적어 주세요.',
+            badResponse: '🤖 [일반 AI]: Apple의 한글 번역은 사과입니다. 장미과 낙엽 활엽 교목인 사과나무의 열매를 가리키며...',
+            successResponse: '🧠 [Few-shot 번역기 출력]\n"입력: Banana\n출력: 바나나"',
+            answerExample: 'Desk : 책상\nComputer : 컴퓨터\nWindow : 창문\nWater : '
+          },
+          {
+            subId: 3,
+            title: '대화 로그 속 핵심 정보 JSON 추출',
+            situation: '📢 문제: 대화 텍스트에서 날짜와 장소 정보만 JSON 포맷으로 축약하려 합니다. 설명 텍스트 없이 **대화문-JSON 입출력 관계 2쌍**을 예시로 제공하는 Few-shot 프롬프트를 조립하세요.',
+            concept: 'JSON 규격과 텍스트를 대조하여 퓨샷으로 구조적 데이터를 무조건 출력하게 하는 고도화 기술입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasJson = val.toLowerCase().includes('json') || val.includes('{');
+              const hasShot = val.includes('->') || val.includes(':') || val.includes('=>');
+              return hasJson && hasShot && val.length >= 20;
+            },
+            feedbackText: (passed) => passed ? '⚡ Few-shot JSON 데이터 빌드 성공! 실행하세요.' : '💡 팁: JSON 포맷 형태의 입출력 예시 2쌍을 텍스트에 포함해 주세요.',
+            badResponse: '🤖 [일반 AI]: 대화 내용에서 날짜는 8월 3일이며, 약속 장소는 동덕여대 민주광장으로 파악되는 유용한 미팅 정보입니다.',
+            successResponse: '🧠 [Few-shot JSON 추출 결과]\n"{\n  \'date\': \'2026-08-03\',\n  \'location\': \'Dongduk Univ Plaza\'\n}\n\n📌 6챕터 모든 실습 클리어!"',
+            answerExample: '입력: 내일 모레인 10월 2일 강남역 스터디룸에서 만나자 -> {"date": "10-02", "loc": "Gangnam"}\n입력: 다음 주 월요일인 5일에 학교 도서관에서 팀플 어때? -> {"date": "05", "loc": "Library"}\n입력: 모레 오후 3시에 홍대 카페에서 회의합시다 -> '
+          }
+        ],
+
+        quizQuestion: 'Few-shot 프롬프팅 기법이 Zero-shot에 비해 가진 가장 강력한 장점은 무엇인가요?',
+        quizOptions: [
+          '모델의 파라미터를 영구 수정한다',
+          '말과 규칙으로 설명하기 복잡한 답변의 구조, 패턴, 출력 포맷을 완벽히 모방시킨다',
+          '인터넷 연결 없이도 작동하게 만든다',
+          '영어 대답만을 강제한다'
+        ],
+        quizAnswerIdx: 1,
+        quizExplain: '정답은 **말과 규칙으로 설명하기 복잡한 답변의 구조, 패턴, 출력 포맷을 완벽히 모방시키는 것**입니다. 퓨샷은 자연어 서술 규칙보다 직관적이고 강력하게 출력 구조를 복제합니다.'
+      },
+      {
+        id: 7,
+        title: '최종 실전 평가 및 수료',
+        kicker: 'CHAPTER 07 · Certification',
+        desc: '앞서 배운 모든 4대 요소, CoT 논리 설계, 그리고 퓨샷의 정수를 총집대성하여 대학교 공식 이수증을 획득하세요.',
+        theory: `### 🚀 파이널 보스 레이드 가이드
+대단하십니다! 이제 프롬프트 엔지니어링의 핵심인 **역할(Persona)**, **맥락(Context)**, **상황(Situation)**, **작업 및 서식(Task & Format)** 조건을 한 문장 속에 유기적으로 집대성하는 종합 실습 단계입니다.
+
+*   **미션 상황**: 동덕여대 대동제 AI 체험 부스의 성공적인 학생 참여를 위해, 선착순 사은품 혜택을 명시하고 해시태그를 포함한 힙한 인스타 홍보 카피를 인공지능이 뱉게 만들어야 합니다.
+*   이번 최종 실습과 하단 수료 퀴즈를 맞히면, 대학교 수업 과제 제출에 유용한 **공식 이수증 발급 패널**이 활성화됩니다.`,
+        
+        missions: [
+          {
+            subId: 1,
+            title: '대동제 AI 체험 부스 마케팅 피드',
+            situation: '📢 문제: 동덕여대 축제 AI 부스 대필이 필요합니다. **"마케터" 페르소나와 축제 혜택 상황, "해시태그" 형식**을 유기적으로 결합하여 프롬프트를 설계하세요.',
+            concept: '페르소나(마케터), 맥락(동덕 대동제), 상황(사은품 혜택), 서식(해시태그) 4대 요소 조립 시험입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasRole = ['마케터', '카피라이터', '전문가', '작가'].some(k => val.includes(k));
+              const hasSituation = ['축제', '대동제', '동덕'].some(k => val.includes(k));
+              const hasEvent = ['혜택', '사은품', '이벤트', '선물'].some(k => val.includes(k));
+              const hasFormat = ['해시태그', '#', '이모지'].some(k => val.includes(k));
+              return hasRole && hasSituation && hasEvent && hasFormat && val.length >= 18;
+            },
+            feedbackText: (passed) => passed ? '⚡ 축제 부스 마케팅 요건 완료! 실행해 보세요.' : '💡 팁: [마케터], [축제], [혜택], [해시태그] 단어가 고루 포함되어야 합니다.',
+            badResponse: '🤖 [일반 AI]: 동덕여대 민주광장에서 AI 체험 부스가 열립니다. 와서 사진 인화도 하고 가세요. 감사합니다.',
+            successResponse: '👑 [최종 보스 클리어 - 마케팅 피드 결과]\n"💜 동덕여대 학우분들의 상상력이 현실이 되는 공간! AI 크리에이터 부스로 초대합니다! 💜\n\n단 3초 만에 나만의 앨범 커버를 그리는 AI 드로잉 체험부터 내 목소리로 만드는 사운드 AI 작곡 체험까지! 민주광장 AI Lab 부스에서 상상 그 이상의 즐거움을 만끽하세요! 🚀\n\n📅 일시: 대동제 기간 내 상시 운영\n🎁 특별 혜택: 선착순 100명 네온 프로필 액자 무료 인화 + 시원한 에이드 1잔 무료 증정!\n\n#동덕여대 #대동제 #AI콘텐츠제작 #동덕축제부스"',
+            answerExample: '당신은 인스타그램 트렌드를 꿰뚫고 있는 힙한 마케터입니다. 동덕여대 대동제 기간 동안 열리는 AI 콘텐츠 체험 부스를 널리 홍보하려 합니다. 선착순 100명에게 무료 에이드 사은품을 지급하는 혜택 상황을 담아, 해시태그를 포함한 카드뉴스 텍스트를 완성해줘.'
+          },
+          {
+            subId: 2,
+            title: '비건 뷰티 런칭 3대 브랜딩 전략',
+            situation: '📢 문제: 20대 여성을 겨냥한 친환경 비건 립스틱 브랜드가 신규 런칭됩니다. **"디렉터" 페르소나와 미닝아웃 환경가치 맥락을 기반으로 3대 실천 행동 플랜**을 도출할 프롬프트를 설계하세요.',
+            concept: '친환경 미닝아웃(맥락)과 브랜딩 디렉터(역할), 3가지 액션 플랜(서식)의 종합 완성도 검사입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasRole = ['디렉터', '마케터', '전문가', '디자이너'].some(k => val.includes(k));
+              const hasContext = ['비건', '친환경', '미닝아웃', '뷰티'].some(k => val.includes(k));
+              const hasTask = ['실천', '플랜', '전략', '행동'].some(k => val.includes(k));
+              return hasRole && hasContext && hasTask && val.length >= 15;
+            },
+            feedbackText: (passed) => passed ? '⚡ 비건 뷰티 브랜딩 요건 만족! 실행하세요.' : '💡 팁: "디렉터", "비건(혹은 미닝아웃)", "실천/플랜" 키워드를 조합하세요.',
+            badResponse: '🤖 [일반 AI]: 비건 립스틱은 식물성 원료로 만듭니다. 인스타그램에 사진을 올리고 홍보해 보세요.',
+            successResponse: '💄 [비건 뷰티 런칭 브랜딩 결과]\n"슬로건: 내 입술에 자연스러운 쉼표, 온전한 비건의 고집\n3대 행동 플랜:\n1. 공병 회수 캠페인 (#RecycleLip)\n2. 발색샷 업로드 시 유기견 센터 기부 연동\n3. 에코 패키징 종이 단상자 패키지 적용"',
+            answerExample: '당신은 비건 코스메틱 뷰티 브랜드 총괄 디렉터입니다. 환경 가치를 중시하는 미닝아웃 소비 트렌드에 대응하여 우리 신제품 비건 립스틱을 시장에 효과적으로 런칭하기 위한 구체적인 실천 전략을 행동 플랜 3가지로 작성해 주세요.'
+          },
+          {
+            subId: 3,
+            title: '사내 IT 보안 가이드라인 축약',
+            situation: '📢 문제: 복잡한 50페이지 사내 IT 보안 운영 지침서가 배포되었습니다. 임직원들이 쉽게 지키게 하기 위해 **"보안" 최고책임자(CISO) 지위로 위반 사례 대조 "표"와 FAQ 5선**을 명확히 요약하라는 프롬프트를 설계하세요.',
+            concept: '보안책임자(역할)와 표 및 FAQ 5선(출력 포맷)을 강제하는 프롬프트 조립의 마침표 단계입니다.',
+            checkPassed: (text) => {
+              const val = text.trim();
+              const hasRole = ['보안', 'CISO', '책임자', '담당자'].some(k => val.includes(k));
+              const hasFormat = ['표', 'Table', '테이블', 'FAQ', 'Q&A'].some(k => val.includes(k));
+              return hasRole && hasFormat && val.length >= 15;
+            },
+            feedbackText: (passed) => passed ? '⚡ 최종 보안 가이드라인 요건 완료! 실행해 보세요.' : '💡 팁: "보안(CISO)", "표(혹은 테이블)", "FAQ(혹은 Q&A)" 단어가 들어가야 합니다.',
+            badResponse: '🤖 [일반 AI]: 임직원 여러분 컴퓨터 비밀번호를 자주 변경하고 악성코드가 유입되지 않게 이메일을 조심하세요.',
+            successResponse: '🛡️ [CISO 보안 가이드 요약 결과]\n"| 위반 행위 | 위험 요소 | 권장 행동 |\n| :--- | :--- | :--- |\n| 포스트잇에 비밀번호 기재 | 권한 도용 | 모바일 2차 OTP 의무화 |\n| 출처 불분명 메일 오픈 | 랜섬웨어 감염 | 백신 감시 켜기 |\n\n임직원 FAQ 5선:\nQ1. 재택망 접속은 어떻게 하나요? -> VPN 사용이 의무입니다..."',
+            answerExample: '당신은 회사 IT 인프라를 수호하는 최고정보보호책임자(CISO)입니다. 지루한 보안 규정 지침서 내용을 임직원 교육용 매뉴얼로 요약하고자 합니다. 보안 위반 사례와 올바른 대처법을 비교할 수 있는 표(Table) 서식과 함께 자주 묻는 질문 FAQ 5선을 일목요연하게 작성해 주세요.'
+          }
+        ],
+
+        quizQuestion: '이번 1주차 과정에서 배운 프롬프트 엔지니어링의 정수를 가장 완벽히 요약한 행동 수칙은 무엇인가요?',
+        quizOptions: [
+          '인공지능에게 질문을 짧고 모호하게 대충 던진다.',
+          '역할(Persona)을 주고, 대상 독자(Context)를 좁히고, 상황적 요구를 구체화하여, 출력 형태(Format)를 강제해 지시한다.',
+          '무조건 영어 번역기를 돌려 질문한다.',
+          '점수 채점 바가 없으면 프롬프트를 짤 수 없다.'
+        ],
+        quizAnswerIdx: 1,
+        quizExplain: '정답은 **역할을 주고, 대상 독자를 좁히고, 상황적 요구를 구체화하여, 출력 형태를 강제해 지시하는 것**입니다. 이것이 바로 현업에서 통용되는 프롬프트 엔지니어링의 황금 공식입니다.'
+      }
+    ];
+
+    function App() {
+      const [currentChIdx, setCurrentChIdx] = useState(0);
+      const [unlockedChIdx, setUnlockedChIdx] = useState(0);
+      const [currentSubIdx, setCurrentSubIdx] = useState(0);
+
+      const [promptText, setPromptText] = useState('');
+      const [powerScore, setPowerScore] = useState(0);
+      const [theme, setTheme] = useState('dark');
+      const [apiOutput, setApiOutput] = useState('');
+      const [isExecuting, setIsExecuting] = useState(false);
+      const [copied, setCopied] = useState(false);
+
+      const [showExample, setShowExample] = useState(false);
+
+      const [hasPersona, setHasPersona] = useState(false);
+      const [hasContext, setHasContext] = useState(false);
+      const [hasFormat, setHasFormat] = useState(false);
+      
+      const [chapterStatusList, setChapterStatusList] = useState(
+        Array(8).fill().map(() => ({
+          quizSolved: false,
+          practiceSolvedList: [false, false, false]
+        }))
+      );
+      
+      const [selectedQuizOpt, setSelectedQuizOpt] = useState(null);
+      const [quizAnswered, setQuizAnswered] = useState(false);
+      const [studentName, setStudentName] = useState('');
+      const [showCertModal, setShowCertModal] = useState(false);
+
+      const currentCh = CHAPTERS[currentChIdx];
+      const currentMission = currentCh.missions[currentSubIdx];
+
+      const toggleTheme = () => {
+        const nextTheme = theme === 'dark' ? 'light' : 'dark';
+        setTheme(nextTheme);
+        document.documentElement.setAttribute('data-theme', nextTheme);
+      };
+
+      useEffect(() => {
+        setPromptText('');
+        setApiOutput('');
+        setIsExecuting(false);
+        setSelectedQuizOpt(null);
+        setQuizAnswered(chapterStatusList[currentChIdx].quizSolved);
+        setCurrentSubIdx(0);
+        setShowExample(false);
+      }, [currentChIdx]);
+
+      useEffect(() => {
+        setPromptText('');
+        setApiOutput('');
+        setIsExecuting(false);
+        setShowExample(false);
+      }, [currentSubIdx]);
+
+      useEffect(() => {
+        const val = promptText.trim();
+        if (!val) {
+          setHasPersona(false);
+          setHasContext(false);
+          setHasFormat(false);
+          setPowerScore(0);
+          return;
+        }
+
+        const personaKeywords = [
+          '수의사', '사육사', '훈련사', '세무사', '회계사', '개발자', 
+          '엔지니어', '아키텍트', '프로그래머', '교수', '마케터', 
+          '디렉터', 'CISO', '책임자', '담당자', '전문가', '작가', '카피라이터'
+        ];
+        const detectedPersona = personaKeywords.some(k => val.includes(k));
+        setHasPersona(detectedPersona);
+
+        const contextKeywords = [
+          '때', '상황', '이유', '때문에', '결석', '독감', '사고', '파손', 
+          '배송', '매출', '실적', '비건', '친환경', '미닝아웃', '보안', 
+          '리포트', '대학', '전공', '목표', '과제', '트렌드'
+        ];
+        const detectedContext = contextKeywords.some(k => val.includes(k)) || val.length >= 15;
+        setHasContext(detectedContext);
+
+        const formatKeywords = [
+          '표', 'table', '테이블', 'json', '{', '글머리', '기호', '•', 
+          '->', '=>', ':', '해시태그', '#', 'faq', 'q&a', '단답', '축약'
+        ];
+        const detectedFormat = formatKeywords.some(k => val.toLowerCase().includes(k)) || (currentChIdx === 0 && currentSubIdx === 0 && val.length <= 10);
+        setHasFormat(detectedFormat);
+
+        const isMissionPassed = currentMission.checkPassed(promptText);
+        
+        if (isMissionPassed && (currentChIdx === 0 && currentSubIdx === 0 ? true : detectedContext)) {
+          setPowerScore(100);
+        } else {
+          let score = 30;
+          if (detectedPersona) score += 20;
+          if (detectedContext) score += 20;
+          if (detectedFormat) score += 20;
+          setPowerScore(Math.min(score, 90));
+        }
+
+      }, [promptText, currentChIdx, currentSubIdx]);
+
+      const handleExecute = () => {
+        if (!promptText.trim()) return;
+        setIsExecuting(true);
+        setApiOutput('AI가 전송된 프롬프트를 구문 분석하여 출력 퀄리티 변동 폭을 연산 중입니다...');
+        
+        const isPassed = powerScore === 100;
+
+        setTimeout(() => {
+          if (isPassed) {
+            setApiOutput(currentMission.successResponse);
+            
+            const newList = [...chapterStatusList];
+            newList[currentChIdx].practiceSolvedList[currentSubIdx] = true;
+            setChapterStatusList(newList);
+            
+            const allPracticeSolved = newList[currentChIdx].practiceSolvedList.every(v => v === true);
+            if (newList[currentChIdx].quizSolved && allPracticeSolved && currentChIdx === unlockedChIdx && unlockedChIdx < 7) {
+              setUnlockedChIdx(prev => prev + 1);
+            }
+          } else {
+            setApiOutput(currentMission.badResponse + '\n\n⚠️ [프롬프트 파워 80% 미만 훈수 실패]\n\n"지시하신 문장에 필수 조건 단어가 누락되어 퀄리티 교정이 불가능합니다. 아래 속성 체크리스트의 [✕ 미완료] 항목을 확인하고 문장을 다듬어 전송해 주세요!"');
+          }
+          setIsExecuting(false);
+        }, 900);
+      };
+
+      const handleSkip = () => {
+        setPromptText(currentMission.answerExample);
+        setPowerScore(100);
+        setHasPersona(true);
+        setHasContext(true);
+        setHasFormat(true);
+        
+        const newList = [...chapterStatusList];
+        newList[currentChIdx].practiceSolvedList[currentSubIdx] = true;
+        setChapterStatusList(newList);
+
+        setApiOutput('⏭️ [문제 건너뛰기 승인]\n문제를 성공적으로 통과 처리했습니다! 예시 답안 프롬프트가 입력창에 자동으로 세팅되었습니다.\n\n' + currentMission.successResponse);
+
+        const allPracticeSolved = newList[currentChIdx].practiceSolvedList.every(v => v === true);
+        if (newList[currentChIdx].quizSolved && allPracticeSolved && currentChIdx === unlockedChIdx && unlockedChIdx < 7) {
+          setUnlockedChIdx(prev => prev + 1);
+        }
+      };
+
+      const applyAnswerExample = () => {
+        setPromptText(currentMission.answerExample);
+        setShowExample(false);
+      };
+
+      const handleQuizSelect = (optIdx) => {
+        if (quizAnswered) return;
+        setSelectedQuizOpt(optIdx);
+        setQuizAnswered(true);
+
+        const newList = [...chapterStatusList];
+        const isCorrect = optIdx === currentCh.quizAnswerIdx;
+        
+        if (isCorrect) {
+          newList[currentChIdx].quizSolved = true;
+          setChapterStatusList(newList);
+          
+          const allPracticeSolved = newList[currentChIdx].practiceSolvedList.every(v => v === true);
+          if (allPracticeSolved && currentChIdx === unlockedChIdx && unlockedChIdx < 7) {
+            setUnlockedChIdx(prev => prev + 1);
+          }
+        }
+      };
+
+      const handleResetQuiz = () => {
+        setSelectedQuizOpt(null);
+        setQuizAnswered(false);
+        const newList = [...chapterStatusList];
+        newList[currentChIdx].quizSolved = false;
+        setChapterStatusList(newList);
+      };
+
+      const handleCopy = () => {
+        if (!promptText.trim()) return;
+        navigator.clipboard.writeText(promptText).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        });
+      };
+
+      const handleNextSubMission = () => {
+        if (currentSubIdx < 2) {
+          setCurrentSubIdx(prev => prev + 1);
+        }
+      };
+
+      const currentChPracticeSolvedCount = chapterStatusList[currentChIdx].practiceSolvedList.filter(Boolean).length;
+      const allMissionsSolved = currentChPracticeSolvedCount === 3;
+
+      return (
+        <div className="layout">
+          
+          <aside className="sidebar">
+            <div>
+              <div className="brand">
+                <div className="dot"></div>
+                <div>
+                  <b>PROMPT MASTER</b>
+                  <small>동덕여대 AI콘텐츠제작 1주차</small>
+                </div>
+              </div>
+
+              <div className="toc-list">
+                {CHAPTERS.map((ch, idx) => {
+                  const isActive = idx === currentChIdx;
+                  const isLocked = idx > unlockedChIdx;
+                  const isDone = chapterStatusList[idx].quizSolved && chapterStatusList[idx].practiceSolvedList.every(v => v === true);
+
+                  return (
+                    <div 
+                      key={ch.id}
+                      className={"toc-ch " + (isActive ? "active" : "") + (isDone ? "done" : "")}
+                      style={{ opacity: isLocked ? 0.35 : 1, cursor: isLocked ? "not-allowed" : "pointer" }}
+                      onClick={() => !isLocked && setCurrentChIdx(idx)}
+                    >
+                      <span className="toc-num">{String(ch.id).padStart(2, '0')}</span>
+                      <span className="toc-label">{ch.title}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="sidebar-footer">
+              <button className="theme-btn" onClick={toggleTheme}>
+                {theme === 'dark' ? '☀️ 라이트 모드로 보기' : '🌙 다크 모드로 보기'}
+              </button>
+            </div>
+          </aside>
+
+          <main className="main">
+            <div className="content">
+              
+              <header className="hero">
+                <span className="kicker">{currentCh.kicker}</span>
+                <h1>{currentCh.title}</h1>
+                <p>{currentCh.desc}</p>
+              </header>
+
+              <article className="chapter-section">
+                <div dangerouslySetInnerHTML={{ __html: currentCh.theory
+                  .replace(/\n\n/g, '<br /><br />')
+                  .replace(/### (.*)/g, '<h3>$1</h3>')
+                  .replace(/\*\*(.*)\*\*/g, '<strong>$1</strong>')
+                }} />
+
+                <hr style={{ borderColor: 'var(--line)', margin: '30px 0' }} />
+
+                <section className="pg-terminal">
+                  <div className="pg-bar">
+                    <i></i><i></i><i></i>
+                    <span>PROMPT PLAYGROUND - 실습 세션 ({currentChPracticeSolvedCount}/3 완료)</span>
+                  </div>
+
+                  <div className="presets" style={{ display: 'flex', gap: '8px', padding: '10px 14px', background: '#12131a', borderBottom: '1px solid #20232b' }}>
+                    {[0, 1, 2].map((sIdx) => {
+                      const isCleared = chapterStatusList[currentChIdx].practiceSolvedList[sIdx];
+                      const isActive = sIdx === currentSubIdx;
+                      return (
+                        <button
+                          key={sIdx}
+                          onClick={() => setCurrentSubIdx(sIdx)}
+                          style={{
+                            background: isActive ? 'var(--accent)' : '#1c1e27',
+                            color: isActive ? '#0e0f13' : '#a7a396',
+                            border: '1px solid #2a2d38',
+                            borderRadius: '6px',
+                            padding: '6px 12px',
+                            fontSize: '0.78rem',
+                            fontWeight: '700',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {isCleared ? '★ ' : ''}문제 {sIdx + 1}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="pg-mission" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '6px' }}>
+                    <div style={{ display: 'flex', gap: '8px', width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span className="pg-mission-tag" style={{ background: 'rgba(217, 183, 117, 0.1)', color: '#d9b775', border: '1px solid #d9b775' }}>
+                        {currentCh.title} - 문제 0{currentSubIdx + 1}
+                      </span>
+                      <span style={{ fontSize: '0.75rem', color: '#a7a396' }}>{currentMission.title}</span>
+                    </div>
+                    <p style={{ fontSize: '0.85rem', color: '#e2efe8', fontWeight: '600', lineHeight: '1.45', marginTop: '6px' }}>
+                      {currentMission.situation}
+                    </p>
+                  </div>
+
+                  <div className="pg-interactive-area">
+                    
+                    {showExample && (
+                      <div style={{
+                        background: 'rgba(201, 168, 106, 0.08)',
+                        border: '1px dashed var(--accent2)',
+                        borderRadius: '8px',
+                        padding: '12px',
+                        marginBottom: '12px',
+                        fontSize: '0.8rem',
+                        lineHeight: '1.5'
+                      }}>
+                        <b style={{ color: 'var(--accent2)', display: 'block', marginBottom: '4px' }}>💡 모범 답안 예시:</b>
+                        <p style={{ color: 'var(--ink)', fontStyle: 'italic', marginBottom: '8px' }}>
+                          "{currentMission.answerExample}"
+                        </p>
+                        <button className="theme-btn" style={{ fontSize: '0.7rem', padding: '4px 8px' }} onClick={applyAnswerExample}>
+                          👉 이 답안 적용하기 (자동 채우기)
+                        </button>
+                      </div>
+                    )}
+
+                    <textarea 
+                      className="pg-textarea"
+                      placeholder="상단에 명시된 문제 조건을 충족하는 훈수 프롬프트를 에디터에 작성하세요..."
+                      value={promptText}
+                      onChange={(e) => setPromptText(e.target.value)}
+                      disabled={isExecuting}
+                    />
+
+                    <div className="attribute-checklist">
+                      <div className={"attr-item " + (hasPersona ? "active" : "inactive")}>
+                        <span>{hasPersona ? '✓' : '✕'}</span>
+                        <span>페르소나 지정</span>
+                      </div>
+                      <div className={"attr-item " + (hasContext ? "active" : "inactive")}>
+                        <span>{hasContext ? '✓' : '✕'}</span>
+                        <span>상황 및 맥락 기술</span>
+                      </div>
+                      <div className={"attr-item " + (hasFormat ? "active" : "inactive")}>
+                        <span>{hasFormat ? '✓' : '✕'}</span>
+                        <span>출력 서식 제약</span>
+                      </div>
+                    </div>
+
+                    <div className="power-gauge">
+                      <div className="gauge-header">
+                        <span>⚡ 프롬프트 전송 파워</span>
+                        <span>{powerScore}%</span>
+                      </div>
+                      <div className="gauge-track">
+                        <div className="gauge-fill" style={{ width: powerScore + "%" }}></div>
+                      </div>
+                      <span className="gauge-feedback">
+                        {currentCh.missions[currentSubIdx].feedbackText(powerScore === 100)}
+                      </span>
+                    </div>
+
+                    <div className="pg-actions">
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button className="theme-btn" style={{ padding: '6px 12px', fontSize: '0.78rem' }} onClick={handleCopy}>
+                          📋 복사
+                        </button>
+                        <button className="theme-btn" style={{ padding: '6px 12px', fontSize: '0.78rem', borderColor: 'var(--accent2)' }} onClick={() => setShowExample(!showExample)}>
+                          💡 답안 예시 보기
+                        </button>
+                        <button className="theme-btn" style={{ padding: '6px 12px', fontSize: '0.78rem', borderColor: '#d05a4e' }} onClick={handleSkip}>
+                          ⏭️ 건너뛰기
+                        </button>
+                      </div>
+                      <button 
+                        className="pg-btn"
+                        onClick={handleExecute}
+                        disabled={powerScore < 100 || isExecuting}
+                      >
+                        제미나이 전송 & 실행 (Run)
+                      </button>
+                    </div>
+
+                    {(apiOutput || isExecuting) && (
+                      <pre className="pg-terminal-out">
+                        {apiOutput}
+                      </pre>
+                    )}
+
+                    {chapterStatusList[currentChIdx].practiceSolvedList[currentSubIdx] && (
+                      <div className="pg-clear-banner">
+                        <span>🎉 문제 {currentSubIdx + 1} 해결 성공!</span>
+                        {currentSubIdx < 2 ? (
+                          <button className="pg-btn" style={{ fontSize: '0.75rem', padding: '4px 10px' }} onClick={handleNextSubMission}>
+                            다음 문제 {currentSubIdx + 2}로 가기 ➡️
+                          </button>
+                        ) : (
+                          <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: '800' }}>⭐ 이 챕터의 3가지 실무 문제를 모두 완료했습니다!</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </section>
+
+                <hr style={{ borderColor: 'var(--line)', margin: '30px 0' }} />
+
+                <section className="quiz" style={{ opacity: allMissionsSolved ? 1 : 0.5 }}>
+                  <div className="quiz-head">확인 퀴즈 (Quiz) {!allMissionsSolved && '🔒 [문제 3개 완료 시 잠금해제]'}</div>
+                  <div className="quiz-question">{currentCh.quizQuestion}</div>
+                  
+                  <div className="quiz-opts">
+                    {currentCh.quizOptions.map((opt, oIdx) => {
+                      let statusClass = '';
+                      if (quizAnswered) {
+                        if (oIdx === currentCh.quizAnswerIdx) statusClass = 'correct';
+                        else if (selectedQuizOpt === oIdx) statusClass = 'wrong';
+                      }
+
+                      return (
+                        <button 
+                          key={oIdx}
+                          className={"quiz-opt " + statusClass}
+                          onClick={() => allMissionsSolved && handleQuizSelect(oIdx)}
+                          disabled={quizAnswered || !allMissionsSolved}
+                        >
+                          <span className="quiz-mark"></span>
+                          <span>{opt}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {quizAnswered && (
+                    <div className="quiz-explain">
+                      <b>해설:</b> {currentCh.quizExplain}
+                      {selectedQuizOpt !== currentCh.quizAnswerIdx && (
+                        <button className="theme-btn" style={{ marginTop: '10px', display: 'block', fontSize: '0.75rem' }} onClick={handleResetQuiz}>
+                          🔄 다시 풀기
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </section>
+
+                {chapterStatusList[currentChIdx].quizSolved && allMissionsSolved && (
+                  <div className="pg-clear-banner" style={{ background: 'rgba(224, 122, 75, 0.1)', borderColor: 'var(--accent)' }}>
+                    <span style={{ color: 'var(--accent)' }}>🥇 챕터 {currentCh.id} 완전 정복 완료! 목차에서 다음 챕터를 클릭해 나아가세요.</span>
+                    {currentChIdx === 7 && (
+                      <button className="pg-btn" style={{ background: 'var(--accent2)' }} onClick={() => setShowCertModal(true)}>
+                        👑 수료증 발급받기
+                      </button>
+                    )}
+                  </div>
+                )}
+
+              </article>
+            </div>
+          </main>
+
+          {showCertModal && (
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <button className="close-btn" onClick={() => setShowCertModal(false)}>×</button>
+                <div className="cert-card">
+                  <div className="cert-corner c-tl"></div>
+                  <div className="cert-corner c-tr"></div>
+                  <div className="cert-corner c-bl"></div>
+                  <div className="cert-corner c-br"></div>
+
+                  <div className="cert-univ">DONGDUK WOMEN'S UNIVERSITY</div>
+                  <div className="cert-head">수 료 증</div>
+
+                  <div className="cert-main">
+                    <input 
+                      type="text" 
+                      placeholder="본인의 이름을 입력하세요"
+                      value={studentName}
+                      onChange={(e) => setStudentName(e.target.value)}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        borderBottom: '2px solid #d4af37',
+                        textAlign: 'center',
+                        color: '#fff',
+                        fontSize: '1.2rem',
+                        fontWeight: 700,
+                        width: '60%',
+                        marginBottom: '20px',
+                        outline: 'none'
+                      }}
+                    /><br />
+                    위 사람은 동덕여대 AI콘텐츠제작 교과목의<br />
+                    <strong>[구글 제미나이 기반 프롬프트 엔지니어링 마스터 코스]</strong>를<br />
+                    훌륭하게 수행하고 모든 이론 및 실습 평가를 패스하였기에<br />
+                    이 증서를 수여합니다.
+                  </div>
+
+                  <div className="cert-date">
+                    {new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  </div>
+                  <div className="cert-sign">
+                    동덕여자대학교 AI콘텐츠제작 담당교수 귀하
+                  </div>
+                </div>
+                <button className="cert-print-btn" onClick={() => window.print()}>
+                  🖨️ 수료증 인쇄 및 PDF 저장
+                </button>
+              </div>
+            </div>
+          )}
+
+          {copied && (
+            <div className="toast-msg" style={{ position: 'fixed', bottom: '20px', right: '20px', background: 'var(--panel)', border: '1px solid var(--line)', padding: '10px 16px', borderRadius: '8px', zIndex: 999 }}>
+              <span>✔️ 프롬프트가 복사되었습니다!</span>
+            </div>
+          )}
+
+        </div>
+      );
+    }
+
+    const container = document.getElementById('root');
+    const root = ReactDOM.createRoot(container);
+    root.render(<App />);
+  </script>
+
+</body>
+</html>

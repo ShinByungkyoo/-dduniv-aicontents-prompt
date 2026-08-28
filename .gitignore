@@ -1,0 +1,10 @@
+# Local Claude Code state
+.claude/
+
+# Source PDF (third-party copyrighted material)
+*.pdf
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
